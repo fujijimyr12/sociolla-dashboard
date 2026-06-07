@@ -282,34 +282,18 @@ def analysis():
 # ==========================================
 # PAGE 3: INPUT MANAGEMENT (SEARCH, INSERT, DELETE)
 # ==========================================
-@app.route("/input", methods=["GET", "POST"])
-def input_management():
+@app.route("/input")
+def input_page():
     conn = get_db_connection()
-    search_query = request.args.get("search", "").strip()
-    
-    # Query SQL dasar untuk menarik data lengkap dari 3 tabel sekaligus agar bisa di-edit
-    base_sql = """
-        SELECT p.*, b.brand_name, c.category_default,
-               r.rating_packaging, r.rating_texture, r.rating_effectiveness, r.rating_value_for_money, r.rating_long_wear, r.rating_scent,
-               e.total_reviews, e.total_recommend_count, e.total_in_wishlist, e.total_repurchase_yes, e.total_repurchase_no, e.total_repurchase_maybe
-        FROM Product p
-        JOIN Brand b ON p.brand_id = b.brand_id
-        JOIN Category c ON p.category_id = c.category_id
-        LEFT JOIN Rating r ON p.product_id = r.product_id
-        LEFT JOIN Engagement e ON p.product_id = e.product_id
-    """
-    
-    if search_query:
-        sql_search = base_sql + " WHERE p.product_name LIKE ? OR b.brand_name LIKE ? LIMIT 30;"
-        products = conn.execute(sql_search, (f"%{search_query}%", f"%{search_query}%")).fetchall()
-    else:
-        products = conn.execute(base_sql + " ORDER BY p.product_id DESC LIMIT 15;").fetchall()
-
+    # Mengambil data master untuk dijadikan pilihan dropdown
     brands = conn.execute("SELECT * FROM Brand ORDER BY brand_name ASC;").fetchall()
     categories = conn.execute("SELECT * FROM Category ORDER BY category_default ASC;").fetchall()
+    
+    # Tetap mengambil data produk untuk tabel control panel di sebelah kanan
+    products = conn.execute("SELECT * FROM Product ORDER BY product_id ASC LIMIT 100;").fetchall()
     conn.close()
     
-    return render_template("input.html", products=products, brands=brands, categories=categories, search_query=search_query)
+    return render_template("input.html", brands=brands, categories=categories, products=products)
 
 @app.route("/add_product", methods=["POST"])
 def add_product():
