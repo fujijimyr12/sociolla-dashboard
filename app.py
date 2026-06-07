@@ -297,70 +297,64 @@ def input_page():
 
 @app.route("/add_product", methods=["POST"])
 def add_product():
-    # 1. Menangkap Data Tabel Product
-    product_id = request.form.get("product_id")
+    # 1. Informasi Utama (Wajib diisi)
     product_name = request.form.get("product_name")
     brand_id = request.form.get("brand_id")
     category_id = request.form.get("category_id")
-    min_price = request.form.get("min_price", 0)
-    max_price = request.form.get("max_price", 0)
-    average_rating = request.form.get("average_rating", 0.0)
-    beauty_point = request.form.get("beauty_point", 0)
+    min_price = request.form.get("min_price")
+    max_price = request.form.get("max_price")
+    beauty_point = request.form.get("beauty_point")
+    average_rating = request.form.get("average_rating")
 
-    # 2. Menangkap Data Tabel Rating (Aspek Fisik)
-    r_packaging = request.form.get("rating_packaging", 0.0)
-    r_texture = request.form.get("rating_texture", 0.0)
-    r_effectiveness = request.form.get("rating_effectiveness", 0.0)
-    r_value = request.form.get("rating_value_for_money", 0.0)
-    r_longwear = request.form.get("rating_long_wear", 0.0)
-    r_scent = request.form.get("rating_scent", 0.0)
+    # 2. Skor Kualitas Aspek (Boleh Kosong - Diberi proteksi default 0.0 jika kosong)
+    rating_packaging = request.form.get("rating_packaging") or 0.0
+    rating_texture = request.form.get("rating_texture") or 0.0
+    rating_effectiveness = request.form.get("rating_effectiveness") or 0.0
+    rating_value_for_money = request.form.get("rating_value_for_money") or 0.0
+    rating_long_wear = request.form.get("rating_long_wear") or 0.0
+    rating_scent = request.form.get("rating_scent") or 0.0
 
-    # 3. Menangkap Data Tabel Engagement (Aktivitas Pasar)
-    t_reviews = request.form.get("total_reviews", 0)
-    t_recommend = request.form.get("total_recommend_count", 0)
-    t_wishlist = request.form.get("total_in_wishlist", 0)
-    rep_yes = request.form.get("total_repurchase_yes", 0)
-    rep_no = request.form.get("total_repurchase_no", 0)
-    rep_maybe = request.form.get("total_repurchase_maybe", 0)
-
-    if not product_id or not product_name:
-        flash("Gagal! ID Produk dan Nama Produk wajib diisi.", "danger")
-        return redirect(url_for("input_management"))
+    # 3. Statistik Engagement Pasar (Boleh Kosong - Diberi proteksi default 0 jika kosong)
+    total_reviews = request.form.get("total_reviews") or 0
+    total_recommend_count = request.form.get("total_recommend_count") or 0
+    total_in_wishlist = request.form.get("total_in_wishlist") or 0
+    total_repurchase_yes = request.form.get("total_repurchase_yes") or 0
+    total_repurchase_no = request.form.get("total_repurchase_no") or 0
+    total_repurchase_maybe = request.form.get("total_repurchase_maybe") or 0
 
     conn = get_db_connection()
-    existing_product = conn.execute("SELECT product_id FROM Product WHERE product_id = ?;", (product_id,)).fetchone()
-
-    if existing_product is not None:
-        conn.close()
-        flash(f"Gagal! ID {product_id} sudah terdaftar di database.", "warning")
-        return redirect(url_for("input_management"))
-
     try:
-        # Perintah INSERT 1: Tabel Product
+        # --- EKSEKUSI INSERT KE TABEL PRODUCT ---
+        # (Sesuaikan susunan kolom SQL Insert kelompokmu di bawah ini)
         conn.execute("""
-            INSERT INTO Product (product_id, brand_id, category_id, product_name, min_price, max_price, beauty_point_earned, average_rating) 
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?);
-        """, (product_id, brand_id, category_id, product_name, min_price, max_price, beauty_point, average_rating))
-        
-        # Perintah INSERT 2: Tabel Rating (Semua Kolom Masuk)
-        conn.execute("""
-            INSERT INTO Rating (product_id, rating_packaging, rating_texture, rating_effectiveness, rating_value_for_money, rating_long_wear, rating_scent) 
+            INSERT INTO Product (product_name, brand_id, category_id, min_price, max_price, beauty_point_earned, average_rating)
             VALUES (?, ?, ?, ?, ?, ?, ?);
-        """, (product_id, r_packaging, r_texture, r_effectiveness, r_value, r_longwear, r_scent))
+        """, (product_name, brand_id, category_id, min_price, max_price, beauty_point, average_rating))
         
-        # Perintah INSERT 3: Tabel Engagement (Semua Kolom Masuk)
+        # Ambil ID produk yang barusan otomatis terbit dari database autoincrement
+        new_product_id = conn.execute("SELECT last_insert_rowid();").fetchone()[0]
+
+        # --- EKSEKUSI INSERT KE TABEL RATING ASPEK ---
         conn.execute("""
-            INSERT INTO Engagement (product_id, total_reviews, total_recommend_count, total_in_wishlist, total_repurchase_yes, total_repurchase_no, total_repurchase_maybe) 
+            INSERT INTO Rating (product_id, rating_packaging, rating_texture, rating_effectiveness, rating_value_for_money, rating_long_wear, rating_scent)
             VALUES (?, ?, ?, ?, ?, ?, ?);
-        """, (product_id, t_reviews, t_recommend, t_wishlist, rep_yes, rep_no, rep_maybe))
-        
+        """, (new_product_id, rating_packaging, rating_texture, rating_effectiveness, rating_value_for_money, rating_long_wear, rating_scent))
+
+        # --- EKSEKUSI INSERT KE TABEL ENGAGEMENT ---
+        conn.execute("""
+            INSERT INTO Engagement (product_id, total_reviews, total_recommend_count, total_in_wishlist, total_repurchase_yes, total_repurchase_no, total_repurchase_maybe)
+            VALUES (?, ?, ?, ?, ?, ?, ?);
+        """, (new_product_id, total_reviews, total_recommend_count, total_in_wishlist, total_repurchase_yes, total_repurchase_no, total_repurchase_maybe))
+
         conn.commit()
-        flash(f"Sukses! Data Produk '{product_name}' berhasil disimpan ke 3 tabel sekaligus.", "success")
+        flash("Sukses! Produk baru beserta seluruh aspek relasionalnya berhasil disimpan.", "success")
     except Exception as e:
-        flash(f"Error Sistem: {e}", "danger")
+        conn.rollback()
+        flash(f"Gagal menyimpan ke database! Eror: {str(e)}", "danger")
     finally:
         conn.close()
-    return redirect(url_for("input_management"))
+
+    return redirect("/input")
 
 @app.route("/delete_product/<int:product_id>", methods=["POST"])
 def delete_product(product_id):
