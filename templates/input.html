@@ -50,7 +50,7 @@
                 <div class="card-header bg-sociolla text-white fw-bold">➕ Tambah Produk Kosmetik Baru</div>
                 <div class="card-body bg-white">
                     <form action="/add_product" method="POST">
-                        <h6 class="fw-bold text-sociolla border-bottom pb-1 mb-3">1. Informasi Utama Produk</h6>
+                        <h6 class="fw-bold text-sociolla border-bottom pb-1 mb-3">1. Informasi Utama Produk (Wajib)</h6>
                         <div class="mb-3">
                             <label class="form-label text-dark small fw-bold">Nama Produk</label>
                             <input type="text" name="product_name" class="form-control border-sociolla" placeholder="Contoh: Lip Tint Velvet" required>
@@ -96,65 +96,65 @@
                             </div>
                         </div>
 
-                        <h6 class="fw-bold text-sociolla border-bottom pb-1 mb-3">2. Skor Kualitas Aspek (0.0 - 5.0)</h6>
+                        <h6 class="fw-bold text-sociolla border-bottom pb-1 mb-3">2. Skor Kualitas Aspek (Opsional - Boleh Kosong)</h6>
                         <div class="row mb-3">
                             <div class="col-4">
                                 <label class="form-label text-dark small">Packaging</label>
-                                <input type="number" step="0.1" max="5" name="rating_packaging" class="form-control border-sociolla" placeholder="0.0" required>
+                                <input type="number" step="0.1" max="5" name="rating_packaging" class="form-control border-sociolla" placeholder="0.0">
                             </div>
                             <div class="col-4">
                                 <label class="form-label text-dark small">Texture</label>
-                                <input type="number" step="0.1" max="5" name="rating_texture" class="form-control border-sociolla" placeholder="0.0" required>
+                                <input type="number" step="0.1" max="5" name="rating_texture" class="form-control border-sociolla" placeholder="0.0">
                             </div>
                             <div class="col-4">
                                 <label class="form-label text-dark small">Effectiveness</label>
-                                <input type="number" step="0.1" max="5" name="rating_effectiveness" class="form-control border-sociolla" placeholder="0.0" required>
+                                <input type="number" step="0.1" max="5" name="rating_effectiveness" class="form-control border-sociolla" placeholder="0.0">
                             </div>
                         </div>
                         <div class="row mb-4">
                             <div class="col-4">
                                 <label class="form-label text-dark small">Value for Money</label>
-                                <input type="number" step="0.1" max="5" name="rating_value_for_money" class="form-control border-sociolla" placeholder="0.0" required>
+                                <input type="number" step="0.1" max="5" name="rating_value_for_money" class="form-control border-sociolla" placeholder="0.0">
                             </div>
                             <div class="col-4">
                                 <label class="form-label text-dark small">Long Wear</label>
-                                <input type="number" step="0.1" max="5" name="rating_long_wear" class="form-control border-sociolla" placeholder="0.0" required>
+                                <input type="number" step="0.1" max="5" name="rating_long_wear" class="form-control border-sociolla" placeholder="0.0">
                             </div>
                             <div class="col-4">
                                 <label class="form-label text-dark small">Scent</label>
-                                <input type="number" step="0.1" max="5" name="rating_scent" class="form-control border-sociolla" placeholder="0.0" required>
+                                <input type="number" step="0.1" max="5" name="rating_scent" class="form-control border-sociolla" placeholder="0.0">
                             </div>
                         </div>
 
-                        <h6 class="fw-bold text-sociolla border-bottom pb-1 mb-3">3. Statistik Engagement Pasar</h6>
+                        <h6 class="fw-bold text-sociolla border-bottom pb-1 mb-3">3. Statistik Engagement (Opsional - Boleh Kosong)</h6>
                         <div class="row mb-3">
                             <div class="col-6">
                                 <label class="form-label text-dark small text-truncate">Total Reviews</label>
-                                <input type="number" name="total_reviews" class="form-control border-sociolla" placeholder="0" required>
+                                <input type="number" name="total_reviews" class="form-control border-sociolla" placeholder="0">
                             </div>
                             <div class="col-6">
                                 <label class="form-label text-dark small text-truncate">Recommend Count</label>
-                                <input type="number" name="total_recommend_count" class="form-control border-sociolla" placeholder="0" required>
+                                <input type="number" name="total_recommend_count" class="form-control border-sociolla" placeholder="0">
                             </div>
                         </div>
                         <div class="row mb-3">
                             <div class="col-12">
                                 <label class="form-label text-dark small">In Wishlist</label>
-                                <input type="number" name="total_in_wishlist" class="form-control border-sociolla" placeholder="0" required>
+                                <input type="number" name="total_in_wishlist" class="form-control border-sociolla" placeholder="0">
                             </div>
                         </div>
                         <div class="row mb-4">
                             <div class="col-4">
                                 <label class="form-label text-dark small text-truncate">Repurchase (Yes)</label>
-                                <input type="number" name="total_repurchase_yes" class="form-control border-sociolla" placeholder="0" required>
+                                <input type="number" name="total_repurchase_yes" class="form-control border-sociolla" placeholder="0">
                             </div>
                             <div class="col-4">
                                 <label class="form-label text-dark small text-truncate">Repurchase (No)</label>
-                                <input type="number" name="total_repurchase_no" class="form-control border-sociolla" placeholder="0" required>
+                                <input type="number" name="total_repurchase_no" class="form-control border-sociolla" placeholder="0">
                             </div>
                             <div class="col-4">
                                 <label class="form-label text-dark small text-truncate">Repurchase (Maybe)</label>
-                                <input type="number" name="total_repurchase_maybe" class="form-control border-sociolla" placeholder="0" required>
+                                <input type="number" name="total_repurchase_maybe" class="form-control border-sociolla" placeholder="0">
                             </div>
                         </div>
 
@@ -182,67 +182,66 @@
                         <tbody>
                             {% for r in products %}
                             <tr>
-                                <td class="align-middle text-muted fw-bold">{{ r['product_id'] }}</td>
-                                <td class="align-middle fw-semibold text-dark">{{ r['product_name'] }}</td>
-                                <td class="align-middle text-success">Rp {{ "{:,}".format(r['min_price']|int) if r['min_price'] else "-" }}</td>
-                                <td class="align-middle text-danger">Rp {{ "{:,}".format(r['max_price']|int) if r['max_price'] else "-" }}</td>
-                                <td class="align-middle text-warning fw-bold">★ {{ r['average_rating'] }}</td>
+                                <td class="align-middle text-muted fw-bold">{{ r.product_id }}</td>
+                                <td class="align-middle fw-semibold text-dark">{{ r.product_name }}</td>
+                                <td class="align-middle text-success">Rp {{ "{:,}".format(r.min_price|int) if r.min_price else "-" }}</td>
+                                <td class="align-middle text-danger">Rp {{ "{:,}".format(r.max_price|int) if r.max_price else "-" }}</td>
+                                <td class="align-middle text-warning fw-bold">★ {{ r.average_rating }}</td>
                                 <td class="align-middle text-center">
                                     <div class="d-flex gap-1 justify-content-center">
                                         <button class="btn btn-sm btn-warning fw-bold px-2 py-1 text-white" 
                                                 data-bs-toggle="modal" 
-                                                data-bs-target="#editModal{{ r['product_id'] }}">
+                                                data-bs-target="#editModal{{ r.product_id }}">
                                             Edit
                                         </button>
-                                        <a href="/delete_product/{{ r.product_id }}" class="btn btn-sm btn-danger fw-bold px-2 py-1" onclick="return confirm('Apakah Anda yakin ingin menghapus data produk ID {{ r.product_id }} secara permanen dari database?');">Hapus
-                                        </a>
+                                        <a href="/delete_product/{{ r.product_id }}" class="btn btn-sm btn-danger fw-bold px-2 py-1" onclick="return confirm('Apakah Anda yakin ingin menghapus data produk ID {{ r.product_id }} secara permanen dari database?');">Hapus</a>
                                     </div>
                                 </td>
                             </tr>
 
-                            <div class="modal fade" id="editModal{{ r['product_id'] }}" timezone="Asia/Jakarta" tabindex="-1" aria-hidden="true">
+                            <div class="modal fade" id="editModal{{ r.product_id }}" tabindex="-1" aria-hidden="true">
                                 <div class="modal-dialog modal-dialog-centered modal-md">
                                     <div class="modal-content border-0 shadow">
                                         <div class="modal-header bg-warning text-white py-2">
-                                            <h6 class="modal-title fw-bold">📝 Edit Informasi Lengkap Produk ID #{{ r['product_id'] }}</h6>
+                                            <h6 class="modal-title fw-bold">📝 Edit Informasi Lengkap Produk ID #{{ r.product_id }}</h6>
                                             <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                                         </div>
-                                        <form action="/update_product/{{ r['product_id'] }}" method="POST">
+                                        <form action="/update_product/{{ r.product_id }}" method="POST">
                                             <div class="modal-body bg-white text-dark small" style="max-height: 500px; overflow-y: auto;">
                                                 
                                                 <h6 class="fw-bold text-warning border-bottom pb-1 mb-3">1. Informasi Utama Produk</h6>
                                                 <div class="mb-2">
                                                     <label class="form-label fw-bold mb-0">Nama Produk</label>
-                                                    <input type="text" name="product_name" class="form-control form-control-sm border-warning" value="{{ r['product_name'] }}">
+                                                    <input type="text" name="product_name" class="form-control form-control-sm border-warning" value="{{ r.product_name }}">
                                                 </div>
                                                 <div class="row mb-2">
                                                     <div class="col-6">
                                                         <label class="form-label fw-bold mb-0">Brand ID</label>
-                                                        <input type="number" name="brand_id" class="form-control form-control-sm border-warning" value="{{ r['brand_id'] }}">
+                                                        <input type="number" name="brand_id" class="form-control form-control-sm border-warning" value="{{ r.brand_id }}">
                                                     </div>
                                                     <div class="col-6">
                                                         <label class="form-label fw-bold mb-0">Category ID</label>
-                                                        <input type="number" name="category_id" class="form-control form-control-sm border-warning" value="{{ r['category_id'] }}">
+                                                        <input type="number" name="category_id" class="form-control form-control-sm border-warning" value="{{ r.category_id }}">
                                                     </div>
                                                 </div>
                                                 <div class="row mb-2">
                                                     <div class="col-6">
                                                         <label class="form-label fw-bold mb-0">Harga Min (Rp)</label>
-                                                        <input type="number" name="min_price" class="form-control form-control-sm border-warning" value="{{ r['min_price'] }}">
+                                                        <input type="number" name="min_price" class="form-control form-control-sm border-warning" value="{{ r.min_price }}">
                                                     </div>
                                                     <div class="col-6">
                                                         <label class="form-label fw-bold mb-0">Harga Max (Rp)</label>
-                                                        <input type="number" name="max_price" class="form-control form-control-sm border-warning" value="{{ r['max_price'] }}">
+                                                        <input type="number" name="max_price" class="form-control form-control-sm border-warning" value="{{ r.max_price }}">
                                                     </div>
                                                 </div>
                                                 <div class="row mb-3">
                                                     <div class="col-6">
                                                         <label class="form-label fw-bold mb-0">Beauty Points</label>
-                                                        <input type="number" name="beauty_point" class="form-control form-control-sm border-warning" value="{{ r['beauty_point_earned'] }}">
+                                                        <input type="number" name="beauty_point" class="form-control form-control-sm border-warning" value="{{ r.beauty_point_earned if r.beauty_point_earned else (r.beauty_point if r.beauty_point else 0) }}">
                                                     </div>
                                                     <div class="col-6">
                                                         <label class="form-label fw-bold mb-0">Global Rating</label>
-                                                        <input type="number" step="0.1" max="5" name="average_rating" class="form-control form-control-sm border-warning" value="{{ r['average_rating'] }}">
+                                                        <input type="number" step="0.1" max="5" name="average_rating" class="form-control form-control-sm border-warning" value="{{ r.average_rating }}">
                                                     </div>
                                                 </div>
 
@@ -250,29 +249,29 @@
                                                 <div class="row mb-2">
                                                     <div class="col-4">
                                                         <label class="form-label mb-0">Packaging</label>
-                                                        <input type="number" step="0.1" max="5" name="rating_packaging" class="form-control form-control-sm border-warning" value="{{ r['rating_packaging'] }}">
+                                                        <input type="number" step="0.1" max="5" name="rating_packaging" class="form-control form-control-sm border-warning" value="{{ r.rating_packaging if r.rating_packaging else 0.0 }}">
                                                     </div>
                                                     <div class="col-4">
                                                         <label class="form-label mb-0">Texture</label>
-                                                        <input type="number" step="0.1" max="5" name="rating_texture" class="form-control form-control-sm border-warning" value="{{ r['rating_texture'] }}">
+                                                        <input type="number" step="0.1" max="5" name="rating_texture" class="form-control form-control-sm border-warning" value="{{ r.rating_texture if r.rating_texture else 0.0 }}">
                                                     </div>
                                                     <div class="col-4">
                                                         <label class="form-label mb-0">Effectiveness</label>
-                                                        <input type="number" step="0.1" max="5" name="rating_effectiveness" class="form-control form-control-sm border-warning" value="{{ r['rating_effectiveness'] }}">
+                                                        <input type="number" step="0.1" max="5" name="rating_effectiveness" class="form-control form-control-sm border-warning" value="{{ r.rating_effectiveness if r.rating_effectiveness else 0.0 }}">
                                                     </div>
                                                 </div>
                                                 <div class="row mb-3">
                                                     <div class="col-4">
                                                         <label class="form-label mb-0">Value for Money</label>
-                                                        <input type="number" step="0.1" max="5" name="rating_value_for_money" class="form-control form-control-sm border-warning" value="{{ r['rating_value_for_money'] }}">
+                                                        <input type="number" step="0.1" max="5" name="rating_value_for_money" class="form-control form-control-sm border-warning" value="{{ r.rating_value_for_money if r.rating_value_for_money else 0.0 }}">
                                                     </div>
                                                     <div class="col-4">
                                                         <label class="form-label mb-0">Long Wear</label>
-                                                        <input type="number" step="0.1" max="5" name="rating_long_wear" class="form-control form-control-sm border-warning" value="{{ r['rating_long_wear'] }}">
+                                                        <input type="number" step="0.1" max="5" name="rating_long_wear" class="form-control form-control-sm border-warning" value="{{ r.rating_long_wear if r.rating_long_wear else 0.0 }}">
                                                     </div>
                                                     <div class="col-4">
                                                         <label class="form-label mb-0">Scent</label>
-                                                        <input type="number" step="0.1" max="5" name="rating_scent" class="form-control form-control-sm border-warning" value="{{ r['rating_scent'] }}">
+                                                        <input type="number" step="0.1" max="5" name="rating_scent" class="form-control form-control-sm border-warning" value="{{ r.rating_scent if r.rating_scent else 0.0 }}">
                                                     </div>
                                                 </div>
 
@@ -280,31 +279,31 @@
                                                 <div class="row mb-2">
                                                     <div class="col-6">
                                                         <label class="form-label mb-0">Total Reviews</label>
-                                                        <input type="number" name="total_reviews" class="form-control form-control-sm border-warning" value="{{ r['total_reviews'] }}">
+                                                        <input type="number" name="total_reviews" class="form-control form-control-sm border-warning" value="{{ r.total_reviews if r.total_reviews else 0 }}">
                                                     </div>
                                                     <div class="col-6">
                                                         <label class="form-label mb-0">Recommend Count</label>
-                                                        <input type="number" name="total_recommend_count" class="form-control form-control-sm border-warning" value="{{ r['total_recommend_count'] }}">
+                                                        <input type="number" name="total_recommend_count" class="form-control form-control-sm border-warning" value="{{ r.total_recommend_count if r.total_recommend_count else 0 }}">
                                                     </div>
                                                 </div>
                                                 <div class="row mb-2">
                                                     <div class="col-12">
                                                         <label class="form-label mb-0">In Wishlist</label>
-                                                        <input type="number" name="total_in_wishlist" class="form-control form-control-sm border-warning" value="{{ r['total_in_wishlist'] }}">
+                                                        <input type="number" name="total_in_wishlist" class="form-control form-control-sm border-warning" value="{{ r.total_in_wishlist if r.total_in_wishlist else 0 }}">
                                                     </div>
                                                 </div>
                                                 <div class="row mb-2">
                                                     <div class="col-4">
                                                         <label class="form-label mb-0">Repurchase (Yes)</label>
-                                                        <input type="number" name="total_repurchase_yes" class="form-control form-control-sm border-warning" value="{{ r['total_repurchase_yes'] }}">
+                                                        <input type="number" name="total_repurchase_yes" class="form-control form-control-sm border-warning" value="{{ r.total_repurchase_yes if r.total_repurchase_yes else 0 }}">
                                                     </div>
                                                     <div class="col-4">
                                                         <label class="form-label mb-0">Repurchase (No)</label>
-                                                        <input type="number" name="total_repurchase_no" class="form-control form-control-sm border-warning" value="{{ r['total_repurchase_no'] }}">
+                                                        <input type="number" name="total_repurchase_no" class="form-control form-control-sm border-warning" value="{{ r.total_repurchase_no if r.total_repurchase_no else 0 }}">
                                                     </div>
                                                     <div class="col-4">
                                                         <label class="form-label mb-0">Repurchase (Maybe)</label>
-                                                        <input type="number" name="total_repurchase_maybe" class="form-control form-control-sm border-warning" value="{{ r['total_repurchase_maybe'] }}">
+                                                        <input type="number" name="total_repurchase_maybe" class="form-control form-control-sm border-warning" value="{{ r.total_repurchase_maybe if r.total_repurchase_maybe else 0 }}">
                                                     </div>
                                                 </div>
 
