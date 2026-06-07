@@ -79,6 +79,8 @@
                                 <tr><td><strong>Max Price:</strong></td><td class="fw-bold text-danger">Rp {{ "{:,}".format(search_result['max_price']|int) if search_result['max_price'] else "-" }}</td></tr>
                                 <tr><td><strong>Beauty Points:</strong></td><td class="fw-bold text-dark">✨ {{ search_result['beauty_point_earned'] if search_result['beauty_point_earned'] else 0 }} pts</td></tr>
                                 <tr><td><strong>Global Rating:</strong></td><td class="fw-bold text-warning">★ {{ search_result['average_rating'] }}</td></tr>
+                                <tr><td><strong>Active Date:</strong></td><td class="text-secondary font-monospace">{{ search_result['active_date'] if search_result['active_date'] else "-" }}</td></tr>
+                                <tr><td><strong>Product URL:</strong></td><td>{% if search_result['url'] %}<a href="{{ search_result['url'] }}" target="_blank" class="text-sociolla fw-bold text-decoration-none">Lihat Link Sociolla 🔗</a>{% else %}<span class="text-muted">-</span>{% endif %}</td></tr>
                             </table>
                         </div>
 
@@ -91,6 +93,9 @@
                                 <div class="col-6">💰 Value for Money: <strong class="text-warning">★ {{ search_result['rating_value_for_money'] if search_result['rating_value_for_money'] else '-' }}</strong></div>
                                 <div class="col-6">⏳ Long Wear: <strong class="text-warning">★ {{ search_result['rating_long_wear'] if search_result['rating_long_wear'] else '-' }}</strong></div>
                                 <div class="col-6">👃 Scent: <strong class="text-warning">★ {{ search_result['rating_scent'] if search_result['rating_scent'] else '-' }}</strong></div>
+                                <div class="col-6">🎨 Pigmentation: <strong class="text-warning">★ {{ search_result['rating_pigmentation'] if search_result['rating_packaging'] else '-' }}</strong></div>
+                                <div class="col-6">🛡️ Durability: <strong class="text-warning">★ {{ search_result['rating_durability'] if search_result['rating_texture'] else '-' }}</strong></div>
+                                <div class="col-6">⚡ Efficiency: <strong class="text-warning">★ {{ search_result['rating_efficiency'] if search_result['rating_effectiveness'] else '-' }}</strong></div>
                             </div>
                         </div>
 
@@ -169,7 +174,8 @@
             <div class="card shadow-sm border-0">
                 <div class="card-header bg-sociolla text-white fw-bold">📋 Tabel Utama: Product</div>
                 <div class="card-body p-0 table-responsive-scroll">
-                    <table class="table table-striped table-hover mb-0 small" style="min-width: 950px;">
+                    <!-- 🛠️ Lebar minimal diperluas sedikit (jadi 1150px) agar kolom tambahan tidak berdesakan -->
+                    <table class="table table-striped table-hover mb-0 small" style="min-width: 1150px;">
                         <thead class="bg-sociolla-light sticky-top">
                             <tr>
                                 <th>ID Produk</th>
@@ -179,6 +185,9 @@
                                 <th>Harga Minimum</th>
                                 <th>Harga Maksimum</th>
                                 <th>Beauty Points</th>
+                                <!-- ➕ TAMBAHAN HEADER BARU -->
+                                <th>Active Date</th>
+                                <th>URL Link</th>
                                 <th>Average Rating</th>
                             </tr>
                         </thead>
@@ -192,6 +201,17 @@
                                 <td class="text-success fw-bold">Rp {{ "{:,}".format(r['min_price']|int) if r['min_price'] else "-" }}</td>
                                 <td class="text-danger fw-bold">Rp {{ "{:,}".format(r['max_price']|int) if r['max_price'] else "-" }}</td>
                                 <td>✨ {{ r['beauty_point_earned'] if r['beauty_point_earned'] else 0 }} pts</td>
+                                
+                                <!-- ➕ TAMBAHAN REAL BARIS DATA UNTUK ACTIVE DATE & URL -->
+                                <td class="text-secondary font-monospace">{{ r['active_date'] if r['active_date'] else "-" }}</td>
+                                <td>
+                                    {% if r['url'] %}
+                                        <a href="{{ r['url'] }}" target="_blank" class="text-sociolla fw-bold text-decoration-none">Link Sociolla 🔗</a>
+                                    {% else %}
+                                        <span class="text-muted">-</span>
+                                    {% endif %}
+                                </td>
+                                
                                 <td class="text-warning fw-bold">★ {{ r['average_rating'] }}</td>
                             </tr>
                             {% endfor %}
@@ -201,13 +221,24 @@
             </div>
         </div>
 
-        <div class="col-md-6 mb-4">
-            <div class="card shadow-sm border-0 h-100">
+        <div class="col-12 mb-4">
+            <div class="card shadow-sm border-0">
                 <div class="card-header bg-sociolla text-white fw-bold">📋 Tabel Aspek: Rating</div>
                 <div class="card-body p-0 table-responsive-scroll">
-                    <table class="table table-striped table-hover mb-0 small" style="min-width: 650px;">
+                    <table class="table table-striped table-hover mb-0 small" style="min-width: 900px;">
                         <thead class="bg-sociolla-light sticky-top">
-                            <tr><th>Prod ID</th><th>Packaging</th><th>Texture</th><th>Effectiveness</th><th>Value for Money</th><th>Long Wear</th><th>Scent</th></tr>
+                            <tr>
+                                <th>Prod ID</th>
+                                <th>Packaging</th>
+                                <th>Texture</th>
+                                <th>Effectiveness</th>
+                                <th>Value for Money</th>
+                                <th>Long Wear</th>
+                                <th>Scent</th>
+                                <th>Pigmentation</th>
+                                <th>Durability</th>
+                                <th>Efficiency</th>
+                            </tr>
                         </thead>
                         <tbody>
                             {% for r in ratings %}
@@ -219,6 +250,9 @@
                                 <td>★ {{ r['rating_value_for_money'] if r['rating_value_for_money'] else "-" }}</td>
                                 <td>★ {{ r['rating_long_wear'] if r['rating_long_wear'] else "-" }}</td>
                                 <td>★ {{ r['rating_scent'] if r['rating_scent'] else "-" }}</td>
+                                <td>★ {{ r['rating_pigmentation'] if r['rating_pigmentation'] else "-" }}</td>
+                                <td>★ {{ r['rating_durability'] if r['rating_durability'] else "-" }}</td>
+                                <td>★ {{ r['rating_efficiency'] if r['rating_efficiency'] else "-" }}</td>
                             </tr>
                             {% endfor %}
                         </tbody>
@@ -227,8 +261,8 @@
             </div>
         </div>
 
-        <div class="col-md-6 mb-4">
-            <div class="card shadow-sm border-0 h-100">
+        <div class="col-12 mb-4">
+            <div class="card shadow-sm border-0">
                 <div class="card-header bg-sociolla text-white fw-bold">📋 Tabel Performa: Engagement</div>
                 <div class="card-body p-0 table-responsive-scroll">
                     <table class="table table-striped table-hover mb-0 small" style="min-width: 750px;">
