@@ -57,12 +57,22 @@
                         </div>
                         <div class="row mb-3">
                             <div class="col-6">
-                                <label class="form-label text-dark small fw-bold">Brand ID</label>
-                                <input type="number" name="brand_id" class="form-control border-sociolla" placeholder="Contoh: 1" required>
+                                <label class="form-label text-dark small fw-bold">Pilih Brand</label>
+                                <select name="brand_id" class="form-select border-sociolla fw-semibold" required>
+                                    <option value="" disabled selected>-- Pilih Brand --</option>
+                                    {% for b in brands %}
+                                        <option value="{{ b.brand_id }}">{{ b.brand_name }} (ID: {{ b.brand_id }})</option>
+                                    {% endfor %}
+                                </select>
                             </div>
                             <div class="col-6">
-                                <label class="form-label text-dark small fw-bold">Category ID</label>
-                                <input type="number" name="category_id" class="form-control border-sociolla" placeholder="Contoh: 3" required>
+                                <label class="form-label text-dark small fw-bold">Pilih Kategori</label>
+                                <select name="category_id" class="form-select border-sociolla fw-semibold" required>
+                                    <option value="" disabled selected>-- Pilih Kategori --</option>
+                                    {% for c in categories %}
+                                        <option value="{{ c.category_id }}">{{ c.category_default }} (ID: {{ c.category_id }})</option>
+                                    {% endfor %}
+                                </select>
                             </div>
                         </div>
                         <div class="row mb-3">
