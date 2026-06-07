@@ -290,6 +290,10 @@ def input_page():
 
 @app.route("/add_product", methods=["POST"])
 def add_product():
+    # ➕ 1. Tangkap ID Produk hasil input manual
+    product_id = request.form.get("product_id")
+    
+    # 2. Informasi Utama
     product_name = request.form.get("product_name")
     brand_id = request.form.get("brand_id")
     category_id = request.form.get("category_id")
@@ -298,11 +302,10 @@ def add_product():
     beauty_point = request.form.get("beauty_point")
     average_rating = request.form.get("average_rating")
     
-    # ➕ AMBIL DATA STRING BARU: SINKRONISASI SKEMA DATABASE TABEL PRODUCT
     url = request.form.get("url") or ""
     active_date = request.form.get("active_date") or ""
 
-    # ➕ AMBIL GENAP 9 ASPEK RATING REAL (TERMASUK DURABILITY TYPO & EFFICIENCY)
+    # 3. Skor Kualitas Aspek (9 Aspek - Durability t-nya satu ya!)
     rating_packaging = request.form.get("rating_packaging") or 0.0
     rating_texture = request.form.get("rating_texture") or 0.0
     rating_effectiveness = request.form.get("rating_effectiveness") or 0.0
@@ -313,6 +316,7 @@ def add_product():
     rating_durability = request.form.get("rating_durability") or 0.0
     rating_efficiency = request.form.get("rating_efficiency") or 0.0
 
+    # 4. Statistik Engagement
     total_reviews = request.form.get("total_reviews") or 0
     total_recommend_count = request.form.get("total_recommend_count") or 0
     total_in_wishlist = request.form.get("total_in_wishlist") or 0
@@ -322,30 +326,28 @@ def add_product():
 
     conn = get_db_connection()
     try:
-        # SINKRON QUERY: Memasukkan kolom url dan active_date
+        # 🛠️ SINKRON QUERY: Masukkan product_id secara manual ke tabel Product
         conn.execute("""
-            INSERT INTO Product (product_name, brand_id, category_id, min_price, max_price, beauty_point_earned, url, active_date, average_rating)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);
-        """, (product_name, brand_id, category_id, min_price, max_price, beauty_point, url, active_date, average_rating))
-        
-        new_product_id = conn.execute("SELECT last_insert_rowid();").fetchone()[0]
+            INSERT INTO Product (product_id, product_name, brand_id, category_id, min_price, max_price, beauty_point_earned, url, active_date, average_rating)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+        """, (product_id, product_name, brand_id, category_id, min_price, max_price, beauty_point, url, active_date, average_rating))
 
-        # SINKRON QUERY: Memasukkan 9 kolom lengkap ke tabel Rating aspek
+        # 🛠️ SINKRON QUERY: Gunakan product_id manual tadi untuk mengunci tabel Rating dan Engagement
         conn.execute("""
             INSERT INTO Rating (product_id, rating_packaging, rating_texture, rating_effectiveness, rating_value_for_money, rating_long_wear, rating_scent, rating_pigmentation, rating_durability, rating_efficiency)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
-        """, (new_product_id, rating_packaging, rating_texture, rating_effectiveness, rating_value_for_money, rating_long_wear, rating_scent, rating_pigmentation, rating_durability, rating_efficiency))
+        """, (product_id, rating_packaging, rating_texture, rating_effectiveness, rating_value_for_money, rating_long_wear, rating_scent, rating_pigmentation, rating_durability, rating_efficiency))
 
         conn.execute("""
             INSERT INTO Engagement (product_id, total_reviews, total_recommend_count, total_in_wishlist, total_repurchase_yes, total_repurchase_no, total_repurchase_maybe)
             VALUES (?, ?, ?, ?, ?, ?, ?);
-        """, (new_product_id, total_reviews, total_recommend_count, total_in_wishlist, total_repurchase_yes, total_repurchase_no, total_repurchase_maybe))
+        """, (product_id, total_reviews, total_recommend_count, total_in_wishlist, total_repurchase_yes, total_repurchase_no, total_repurchase_maybe))
 
         conn.commit()
-        flash(f"Sukses! Produk baru ID #{new_product_id} berhasil disimpan.", "success")
+        flash(f"Sukses! Produk baru dengan ID #{product_id} berhasil disimpan.", "success")
     except Exception as e:
         conn.rollback()
-        flash(f"Gagal menyimpan ke database! Eror: {str(e)}", "danger")
+        flash(f"Gagal menyimpan! (Tips: Pastikan ID #{product_id} belum pernah dipakai). Eror: {str(e)}", "danger")
     finally:
         conn.close()
 
