@@ -302,7 +302,7 @@ def add_product():
     url = request.form.get("url") or ""
     active_date = request.form.get("active_date") or ""
 
-    # ➕ AMBIL GENAP 9 ASPEK RATING REAL (TERMASUK DURABILITTY TYPO & EFFICIENCY)
+    # ➕ AMBIL GENAP 9 ASPEK RATING REAL (TERMASUK DURABILITY TYPO & EFFICIENCY)
     rating_packaging = request.form.get("rating_packaging") or 0.0
     rating_texture = request.form.get("rating_texture") or 0.0
     rating_effectiveness = request.form.get("rating_effectiveness") or 0.0
@@ -310,7 +310,7 @@ def add_product():
     rating_long_wear = request.form.get("rating_long_wear") or 0.0
     rating_scent = request.form.get("rating_scent") or 0.0
     rating_pigmentation = request.form.get("rating_pigmentation") or 0.0
-    rating_durabilitty = request.form.get("rating_durability") or 0.0
+    rating_durability = request.form.get("rating_durability") or 0.0
     rating_efficiency = request.form.get("rating_efficiency") or 0.0
 
     total_reviews = request.form.get("total_reviews") or 0
@@ -332,9 +332,9 @@ def add_product():
 
         # SINKRON QUERY: Memasukkan 9 kolom lengkap ke tabel Rating aspek
         conn.execute("""
-            INSERT INTO Rating (product_id, rating_packaging, rating_texture, rating_effectiveness, rating_value_for_money, rating_long_wear, rating_scent, rating_pigmentation, rating_durabilitty, rating_efficiency)
+            INSERT INTO Rating (product_id, rating_packaging, rating_texture, rating_effectiveness, rating_value_for_money, rating_long_wear, rating_scent, rating_pigmentation, rating_durability, rating_efficiency)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
-        """, (new_product_id, rating_packaging, rating_texture, rating_effectiveness, rating_value_for_money, rating_long_wear, rating_scent, rating_pigmentation, rating_durabilitty, rating_efficiency))
+        """, (new_product_id, rating_packaging, rating_texture, rating_effectiveness, rating_value_for_money, rating_long_wear, rating_scent, rating_pigmentation, rating_durability, rating_efficiency))
 
         conn.execute("""
             INSERT INTO Engagement (product_id, total_reviews, total_recommend_count, total_in_wishlist, total_repurchase_yes, total_repurchase_no, total_repurchase_maybe)
@@ -420,7 +420,7 @@ def update_product(product_id):
     r_pig = float(r_pig) if r_pig else old_r["rating_pigmentation"]
 
     r_dur = request.form.get("rating_durability")
-    r_dur = float(r_dur) if r_dur else old_r["rating_durabilitty"]
+    r_dur = float(r_dur) if r_dur else old_r["rating_durability"]
 
     r_effi = request.form.get("rating_efficiency")
     r_effi = float(r_effi) if r_effi else old_r["rating_efficiency"]
@@ -454,7 +454,7 @@ def update_product(product_id):
         # QUERY UPDATE RATING LENGKAP (9 ASPEK SEKALIGUS)
         conn.execute("""
             UPDATE Rating 
-            SET rating_packaging = ?, rating_texture = ?, rating_effectiveness = ?, rating_value_for_money = ?, rating_long_wear = ?, rating_scent = ?, rating_pigmentation = ?, rating_durabilitty = ?, rating_efficiency = ?
+            SET rating_packaging = ?, rating_texture = ?, rating_effectiveness = ?, rating_value_for_money = ?, rating_long_wear = ?, rating_scent = ?, rating_pigmentation = ?, rating_durability = ?, rating_efficiency = ?
             WHERE product_id = ?;
         """, (r_pkg, r_txt, r_eff, r_val, r_lng, r_snt, r_pig, r_dur, r_effi, product_id))
 
