@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sociolla Dashboard - Management</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .bg-sociolla { background-color: #ff4a8a !important; }
+        .text-sociolla { color: #ff4a8a !important; }
+        .border-sociolla { border-color: #ff4a8a !important; }
+        .bg-sociolla-light { background-color: #fff0f5 !important; }
+        .btn-sociolla { background-color: #ff4a8a !important; color: white !important; }
+        .btn-sociolla:hover { background-color: #e03b75 !important; }
+    </style>
+</head>
+<body style="background-color: #fff5f7;">
+
+<nav class="navbar navbar-expand-lg navbar-dark bg-sociolla shadow-sm">
+    <div class="container">
+        <a class="navbar-brand fw-bold text-white" href="/">🌸 Sociolla Dashboard</a>
+        <div class="navbar-nav ms-auto">
+            <a class="nav-link text-white-50" href="/">Home</a>
+            <a class="nav-link text-white-50" href="/analysis">Analysis & Query</a>
+            <a class="nav-link active fw-semibold text-white" href="/input">Data Input</a>
+        </div>
+    </div>
+</nav>
+
+<div class="container mt-5 mb-5">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }} alert-dismissible fade show shadow-sm" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <div class="row">
+        <div class="col-lg-4 mb-4">
+            <div class="card shadow-sm border-0 rounded-3" style="max-height: 85vh; overflow-y: auto;">
+                <div class="card-header bg-sociolla text-white fw-bold p-3 sticky-top">➕ Tambah Record Produk Lengkap</div>
+                <div class="card-body bg-white p-3">
+                    <form action="/add_product" method="POST">
+                        <h6 class="fw-bold text-sociolla border-bottom pb-1 mb-2">A. Informasi Utama</h6>
+                        <div class="mb-2"><label class="small fw-semibold mb-1">ID Produk (Unik):</label><input type="number" name="product_id" class="form-control form-control-sm border-secondary" placeholder="Contoh: 200011" required></div>
+                        <div class="mb-2"><label class="small fw-semibold mb-1">Nama Produk:</label><input type="text" name="product_name" class="form-control form-control-sm border-secondary" placeholder="Nama kosmetik/skincare" required></div>
+                        <div class="mb-2"><label class="small fw-semibold mb-1">Pilih Brand:</label>
+                            <select name="brand_id" class="form-select form-select-sm border-secondary">
+                                {% for brand in brands %}<option value="{{ brand['brand_id'] }}">{{ brand['brand_name'] }}</option>{% endfor %}
+                            </select>
+                        </div>
+                        <div class="mb-2"><label class="small fw-semibold mb-1">Pilih Kategori:</label>
+                            <select name="category_id" class="form-select form-select-sm border-secondary">
+                                {% for cat in categories %}<option value="{{ cat['category_id'] }}">{{ cat['category_default'] }}</option>{% endfor %}
+                            </select>
+                        </div>
+                        <div class="row g-2 mb-2">
+                            <div class="col-6"><label class="small fw-semibold mb-1">Harga Min:</label><input type="number" name="min_price" class="form-control form-control-sm border-secondary" placeholder="35000"></div>
+                            <div class="col-6"><label class="small fw-semibold mb-1">Harga Max:</label><input type="number" name="max_price" class="form-control form-control-sm border-secondary" placeholder="60000"></div>
+                        </div>
+                        <div class="row g-2 mb-3">
+                            <div class="col-6"><label class="small fw-semibold mb-1">Avg Rating:</label><input type="number" step="0.01" name="average_rating" class="form-control form-control-sm border-secondary" placeholder="4.5"></div>
+                            <div class="col-6"><label class="small fw-semibold mb-1">Beauty Points:</label><input type="number" name="beauty_point" class="form-control form-control-sm border-secondary" placeholder="10"></div>
+                        </div>
+
+                        <h6 class="fw-bold text-sociolla border-bottom pb-1 mb-2">B. Skor Aspek Rating (0 - 5)</h6>
+                        <div class="row g-2 mb-2">
+                            <div class="col-6"><label class="small fw-semibold mb-1">Kemasan:</label><input type="number" step="0.1" name="rating_packaging" class="form-control form-control-sm border-secondary" placeholder="4.2"></div>
+                            <div class="col-6"><label class="small fw-semibold mb-1">Tekstur:</label><input type="number" step="0.1" name="rating_texture" class="form-control form-control-sm border-secondary" placeholder="4.5"></div>
+                        </div>
+                        <div class="row g-2 mb-2">
+                            <div class="col-6"><label class="small fw-semibold mb-1">Efektivitas:</label><input type="number" step="0.1" name="rating_effectiveness" class="form-control form-control-sm border-secondary" placeholder="4.6"></div>
+                            <div class="col-6"><label class="small fw-semibold mb-1">Value Money:</label><input type="number" step="0.1" name="rating_value_for_money" class="form-control form-control-sm border-secondary" placeholder="4.0"></div>
+                        </div>
+                        <div class="row g-2 mb-3">
+                            <div class="col-6"><label class="small fw-semibold mb-1">Ketahanan:</label><input type="number" step="0.1" name="rating_long_wear" class="form-control form-control-sm border-secondary" placeholder="4.3"></div>
+                            <div class="col-6"><label class="small fw-semibold mb-1">Aroma:</label><input type="number" step="0.1" name="rating_scent" class="form-control form-control-sm border-secondary" placeholder="4.1"></div>
+                        </div>
+
+                        <h6 class="fw-bold text-sociolla border-bottom pb-1 mb-2">C. Aktivitas Pasar</h6>
+                        <div class="row g-2 mb-2">
+                            <div class="col-6"><label class="small fw-semibold mb-1">Total Ulasan:</label><input type="number" name="total_reviews" class="form-control form-control-sm border-secondary" placeholder="150"></div>
+                            <div class="col-6"><label class="small fw-semibold mb-1">Rekomendasi:</label><input type="number" name="total_recommend_count" class="form-control form-control-sm border-secondary" placeholder="120"></div>
+                        </div>
+                        <div class="mb-3"><label class="small fw-semibold mb-1">Masuk Wishlist:</label><input type="number" name="total_in_wishlist" class="form-control form-control-sm border-secondary" placeholder="340"></div>
+                        <div class="row g-3 mb-4">
+                            <div class="col-4"><label class="small text-success fw-bold mb-1">Rep. YES:</label><input type="number" name="total_repurchase_yes" class="form-control form-control-sm border-success" placeholder="90"></div>
+                            <div class="col-4"><label class="small text-danger fw-bold mb-1">Rep. NO:</label><input type="number" name="total_repurchase_no" class="form-control form-control-sm border-danger" placeholder="15"></div>
+                            <div class="col-4"><label class="small text-warning fw-bold mb-1">Maybe:</label><input type="number" name="total_repurchase_maybe" class="form-control form-control-sm border-warning" placeholder="45"></div>
+                        </div>
+                        <button type="submit" class="btn btn-sociolla w-100 fw-bold shadow-sm">Simpan Record Integrasi</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-8 mb-4">
+            <div class="card shadow-sm border-0 rounded-3">
+                <div class="card-header bg-sociolla text-white p-3 fw-bold">🔍 Filter Pencarian & Operasi CRUD Data</div>
+                <div class="card-body bg-white p-3">
+                    <form method="GET" action="/input" class="row g-2 mb-3">
+                        <div class="col-md-9"><input type="text" name="search" class="form-control border-sociolla" placeholder="Cari nama produk atau nama brand..." value="{{ search_query }}"></div>
+                        <div class="col-md-3"><button type="submit" class="btn btn-sociolla w-100 fw-bold shadow-sm">Cari Data</button></div>
+                    </form>
+                    <div class="table-responsive" style="max-height: 450px; overflow-y: auto;">
+                        <table class="table table-striped table-hover align-middle mb-0 text-sm" style="font-size: 0.88rem;">
+                            <thead class="bg-sociolla-light sticky-top">
+                                <tr class="text-dark border-bottom border-secondary">
+                                    <th>ID</th>
+                                    <th>Nama Produk</th>
+                                    <th>Brand</th>
+                                    <th>Harga Min</th>
+                                    <th>Rating</th>
+                                    <th class="text-center">Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for product in products %}
+                                <tr>
+                                    <td>{{ product['product_id'] }}</td>
+                                    <td class="fw-semibold text-sociolla">{{ product['product_name'] }}</td>
+                                    <td><span class="badge bg-light text-dark border">{{ product['brand_name'] }}</span></td>
+                                    <td>Rp {{ "{:,}".format(product['min_price']|int) if product['min_price'] else "-" }}</td>
+                                    <td class="text-warning fw-bold">★ {{ product['average_rating'] }}</td>
+                                    <td class="text-center">
+                                        <button type="button" class="btn btn-primary btn-sm fw-bold py-0 px-2 me-1" data-bs-toggle="modal" data-bs-target="#editModal{{ product['product_id'] }}">Edit</button>
+                                        
+                                        <form action="/delete_product/{{ product['product_id'] }}" method="POST" onsubmit="return confirm('Hapus produk ini secara permanen dari database kelompok?');" style="display: inline;">
+                                            <button type="submit" class="btn btn-danger btn-sm fw-bold py-0 px-2">Hapus</button>
+                                        </form>
+                                    </td>
+                                </tr>
+
+                                <div class="modal fade" id="editModal{{ product['product_id'] }}" tabindex="-1" aria-hidden="true">
+                                    <div class="modal-dialog modal-dialog-scrollable">
+                                        <div class="modal-content text-start">
+                                            <div class="modal-header bg-sociolla text-white">
+                                                <h5 class="modal-title fw-bold">✏️ Edit Data Produk ID: {{ product['product_id'] }}</h5>
+                                                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                                            </div>
+                                            <div class="modal-body bg-light">
+                                                <form action="/update_product/{{ product['product_id'] }}" method="POST">
+                                                    
+                                                    <h6 class="fw-bold text-sociolla border-bottom pb-1 mb-2">A. Informasi Utama</h6>
+                                                    <div class="mb-2"><label class="small fw-bold mb-1">Nama Produk:</label><input type="text" name="product_name" class="form-control form-control-sm" value="{{ product['product_name'] }}" required></div>
+                                                    <div class="mb-2"><label class="small fw-bold mb-1">Brand:</label>
+                                                        <select name="brand_id" class="form-select form-select-sm">
+                                                            {% for b in brands %}<option value="{{ b['brand_id'] }}" {% if b['brand_id'] == product['brand_id'] %}selected{% endif %}>{{ b['brand_name'] }}</option>{% endfor %}
+                                                        </select>
+                                                    </div>
+                                                    <div class="mb-2"><label class="small fw-bold mb-1">Kategori:</label>
+                                                        <select name="category_id" class="form-select form-select-sm">
+                                                            {% for c in categories %}<option value="{{ c['category_id'] }}" {% if c['category_id'] == product['category_id'] %}selected{% endif %}>{{ c['category_default'] }}</option>{% endfor %}
+                                                        </select>
+                                                    </div>
+                                                    <div class="row g-2 mb-2">
+                                                        <div class="col-6"><label class="small fw-bold mb-1">Harga Min:</label><input type="number" name="min_price" class="form-control form-control-sm" value="{{ product['min_price'] }}"></div>
+                                                        <div class="col-6"><label class="small fw-bold mb-1">Harga Max:</label><input type="number" name="max_price" class="form-control form-control-sm" value="{{ product['max_price'] }}"></div>
+                                                    </div>
+                                                    <div class="row g-2 mb-3">
+                                                        <div class="col-6"><label class="small fw-bold mb-1">Avg Rating:</label><input type="number" step="0.01" name="average_rating" class="form-control form-control-sm" value="{{ product['average_rating'] }}"></div>
+                                                        <div class="col-6"><label class="small fw-bold mb-1">Beauty Points:</label><input type="number" name="beauty_point" class="form-control form-control-sm" value="{{ product['beauty_point_earned'] }}"></div>
+                                                    </div>
+
+                                                    <h6 class="fw-bold text-sociolla border-bottom pb-1 mb-2">B. Skor Aspek Rating</h6>
+                                                    <div class="row g-2 mb-2">
+                                                        <div class="col-6"><label class="small fw-bold mb-1">Kemasan:</label><input type="number" step="0.1" name="rating_packaging" class="form-control form-control-sm" value="{{ product['rating_packaging'] }}"></div>
+                                                        <div class="col-6"><label class="small fw-bold mb-1">Tekstur:</label><input type="number" step="0.1" name="rating_texture" class="form-control form-control-sm" value="{{ product['rating_texture'] }}"></div>
+                                                    </div>
+                                                    <div class="row g-2 mb-2">
+                                                        <div class="col-6"><label class="small fw-bold mb-1">Efektivitas:</label><input type="number" step="0.1" name="rating_effectiveness" class="form-control form-control-sm" value="{{ product['rating_effectiveness'] }}"></div>
+                                                        <div class="col-6"><label class="small fw-bold mb-1">Value Money:</label><input type="number" step="0.1" name="rating_value_for_money" class="form-control form-control-sm" value="{{ product['rating_value_for_money'] }}"></div>
+                                                    </div>
+                                                    <div class="row g-2 mb-3">
+                                                        <div class="col-6"><label class="small fw-bold mb-1">Ketahanan:</label><input type="number" step="0.1" name="rating_long_wear" class="form-control form-control-sm" value="{{ product['rating_long_wear'] }}"></div>
+                                                        <div class="col-6"><label class="small fw-bold mb-1">Aroma:</label><input type="number" step="0.1" name="rating_scent" class="form-control form-control-sm" value="{{ product['rating_scent'] }}"></div>
+                                                    </div>
+
+                                                    <h6 class="fw-bold text-sociolla border-bottom pb-1 mb-2">C. Aktivitas Pasar</h6>
+                                                    <div class="row g-2 mb-2">
+                                                        <div class="col-6"><label class="small fw-bold mb-1">Total Ulasan:</label><input type="number" name="total_reviews" class="form-control form-control-sm" value="{{ product['total_reviews'] }}"></div>
+                                                        <div class="col-6"><label class="small fw-bold mb-1">Rekomendasi:</label><input type="number" name="total_recommend_count" class="form-control form-control-sm" value="{{ product['total_recommend_count'] }}"></div>
+                                                    </div>
+                                                    <div class="mb-3"><label class="small fw-bold mb-1">Masuk Wishlist:</label><input type="number" name="total_in_wishlist" class="form-control form-control-sm" value="{{ product['total_in_wishlist'] }}"></div>
+                                                    <div class="row g-3 mb-4">
+                                                        <div class="col-4"><label class="small text-success fw-bold mb-1">Rep. YES:</label><input type="number" name="total_repurchase_yes" class="form-control form-control-sm border-success" value="{{ product['total_repurchase_yes'] }}"></div>
+                                                        <div class="col-4"><label class="small text-danger fw-bold mb-1">Rep. NO:</label><input type="number" name="total_repurchase_no" class="form-control form-control-sm border-danger" value="{{ product['total_repurchase_no'] }}"></div>
+                                                        <div class="col-4"><label class="small text-warning fw-bold mb-1">Maybe:</label><input type="number" name="total_repurchase_maybe" class="form-control form-control-sm border-warning" value="{{ product['total_repurchase_maybe'] }}"></div>
+                                                    </div>
+
+                                                    <button type="submit" class="btn btn-sociolla w-100 fw-bold">Simpan Perubahan Data</button>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% else %}
+                                <tr><td colspan="6" class="text-center py-4 text-muted">⚠️ Produk tidak ditemukan.</td></tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
