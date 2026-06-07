@@ -285,14 +285,21 @@ def analysis():
 @app.route("/input")
 def input_page():
     conn = get_db_connection()
-    # Mengambil data master untuk dijadikan pilihan dropdown
     brands = conn.execute("SELECT * FROM Brand ORDER BY brand_name ASC;").fetchall()
     categories = conn.execute("SELECT * FROM Category ORDER BY category_default ASC;").fetchall()
     
-    # Tetap mengambil data produk untuk tabel control panel di sebelah kanan
-    products = conn.execute("SELECT * FROM Product ORDER BY product_id ASC LIMIT 100;").fetchall()
-    conn.close()
+    # Tangkap kata kunci pencarian jika ada
+    keyword = request.args.get('search_keyword', '').strip()
     
+    if keyword:
+        # Jika user mencari sesuatu (bisa berupa potongan nama produk atau angka ID langsung)
+        query = "SELECT * FROM Product WHERE product_name LIKE ? OR product_id = ? ORDER BY product_id DESC;"
+        products = conn.execute(query, (f"%{keyword}%", keyword if keyword.isdigit() else -1)).fetchall()
+    else:
+        # Jika normal, tampilkan 100 baris terbaru
+        products = conn.execute("SELECT * FROM Product ORDER BY product_id DESC LIMIT 100;").fetchall()
+        
+    conn.close()
     return render_template("input.html", brands=brands, categories=categories, products=products)
 
 @app.route("/add_product", methods=["POST"])
