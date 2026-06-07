@@ -19,46 +19,49 @@ def get_db_connection():
     return conn
 
 # ==========================================
-# PAGE 1: HOME (DATABASE INFO, DYNAMIC CHARTS & ALL RECORDS)
+# PAGE 1: HOME (FULL COLUMNS & ANTI-LAG)
 # ==========================================
 @app.route("/")
 def home():
     conn = get_db_connection()
     
-    # 1. Ambil Live Statistik Record untuk Box Informasi
+    # 1. Kotak Live Statistik Ringkasan di Atas
     count_brand = conn.execute("SELECT COUNT(*) FROM Brand;").fetchone()[0]
     count_category = conn.execute("SELECT COUNT(*) FROM Category;").fetchone()[0]
     count_product = conn.execute("SELECT COUNT(*) FROM Product;").fetchone()[0]
     count_rating = conn.execute("SELECT COUNT(*) FROM Rating;").fetchone()[0]
     count_engagement = conn.execute("SELECT COUNT(*) FROM Engagement;").fetchone()[0]
 
-    # 2. Ambil Seluruh Baris Data untuk Tabel Master
+    # 🔍 2. Fitur Ambil ID dari Kolom Search
+    search_id = request.args.get('search_id', '').strip()
+    search_result = None
+    
+    if search_id and search_id.isdigit():
+        query_search = """
+            SELECT p.*, b.brand_name, c.category_default, r.*, e.*
+            FROM Product p
+            JOIN Brand b ON p.brand_id = b.brand_id
+            JOIN Category c ON p.category_id = c.category_id
+            LEFT JOIN Rating r ON p.product_id = r.product_id
+            LEFT JOIN Engagement e ON p.product_id = e.product_id
+            WHERE p.product_id = ?;
+        """
+        search_result = conn.execute(query_search, (int(search_id),)).fetchone()
+
+    # 3. Tabel Data Lengkap 
     brands = conn.execute("SELECT * FROM Brand ORDER BY brand_id ASC;").fetchall()
     categories = conn.execute("SELECT * FROM Category ORDER BY category_id ASC;").fetchall()
-    products = conn.execute("SELECT product_id, product_name, brand_id, category_id, min_price, average_rating FROM Product ORDER BY product_id ASC;").fetchall()
-    ratings = conn.execute("SELECT * FROM Rating ORDER BY product_id ASC;").fetchall()
-    engagements = conn.execute("SELECT * FROM Engagement ORDER BY product_id ASC;").fetchall()
+    products = conn.execute("SELECT * FROM Product ORDER BY product_id ASC LIMIT 100;").fetchall()
+    ratings = conn.execute("SELECT * FROM Rating ORDER BY product_id ASC LIMIT 100;").fetchall()
+    engagements = conn.execute("SELECT * FROM Engagement ORDER BY product_id ASC LIMIT 100;").fetchall()
     
-    # 📊 3. DATA GRAFIK HOME 1: Top 5 Kategori dengan Produk Terbanyak
-    query_top_cat = """
-        SELECT c.category_default, COUNT(p.product_id) as total_prod 
-        FROM Category c 
-        JOIN Product p ON c.category_id = p.category_id 
-        GROUP BY c.category_id 
-        ORDER BY total_prod DESC LIMIT 5;
-    """
+    # 📊 4. Data Grafik Ringkasan Kategori & Brand
+    query_top_cat = "SELECT c.category_default, COUNT(p.product_id) as total_prod FROM Category c JOIN Product p ON c.category_id = p.category_id GROUP BY c.category_id ORDER BY total_prod DESC LIMIT 5;"
     res_cat = conn.execute(query_top_cat).fetchall()
     home_cat_labels = [row['category_default'] for row in res_cat]
     home_cat_data = [row['total_prod'] for row in res_cat]
 
-    # 📊 4. DATA GRAFIK HOME 2: Distribusi Produk per Brand (Doughnut)
-    query_top_brand = """
-        SELECT b.brand_name, COUNT(p.product_id) as total_prod 
-        FROM Brand b 
-        JOIN Product p ON b.brand_id = p.brand_id 
-        GROUP BY b.brand_id 
-        ORDER BY total_prod DESC LIMIT 5;
-    """
+    query_top_brand = "SELECT b.brand_name, COUNT(p.product_id) as total_prod FROM Brand b JOIN Product p ON b.brand_id = p.brand_id GROUP BY b.brand_id ORDER BY total_prod DESC LIMIT 5;"
     res_brand = conn.execute(query_top_brand).fetchall()
     home_brand_labels = [row['brand_name'] for row in res_brand]
     home_brand_data = [row['total_prod'] for row in res_brand]
@@ -70,7 +73,8 @@ def home():
         count_rating=count_rating, count_engagement=count_engagement,
         brands=brands, categories=categories, products=products, ratings=ratings, engagements=engagements,
         home_cat_labels=home_cat_labels, home_cat_data=home_cat_data,
-        home_brand_labels=home_brand_labels, home_brand_data=home_brand_data
+        home_brand_labels=home_brand_labels, home_brand_data=home_brand_data,
+        search_result=search_result, search_id=search_id
     )
 
 # ==========================================
@@ -103,7 +107,7 @@ def analysis():
         query_sql = "SELECT p.product_id, b.brand_name, c.category_default, p.product_name, p.min_price, p.max_price, p.average_rating, r.rating_effectiveness, r.rating_value_for_money, r.rating_texture, e.total_reviews, e.total_recommend_count, e.total_repurchase_yes, e.total_in_wishlist FROM Product p JOIN Brand b ON p.brand_id = b.brand_id JOIN Category c ON p.category_id = c.category_id JOIN Rating r ON p.product_id = r.product_id JOIN Engagement e ON p.product_id = e.product_id WHERE e.total_reviews > 0 ORDER BY e.total_reviews DESC LIMIT 15;"
         headers = ["ID", "Brand", "Kategori", "Nama Produk", "Harga Min", "Harga Max", "Avg Rating", "Efektivitas", "Value Money", "Tekstur", "Total Ulasan", "Rekomendasi", "Repurchase (Yes)", "Total Wishlist"]
     elif selected_query == "agg1_brand":
-        title = "AGG-1: Performa per Brand (COUNT, AVG, SUM)"
+        title = "AGG-1: Performa per Brand"
         description = "Agregasi jumlah produk, rata-rata rating, dan akumulasi wishlist per brand."
         query_sql = "SELECT b.brand_name, COUNT(p.product_id) AS total_produk, ROUND(AVG(CAST(p.average_rating AS FLOAT)), 2) AS avg_rating, ROUND(AVG(CAST(e.total_reviews AS INT)), 1) AS avg_ulasan, SUM(CAST(e.total_in_wishlist AS INT)) AS total_wishlist FROM Brand b JOIN Product p ON b.brand_id = p.brand_id JOIN Engagement e ON p.product_id = e.product_id WHERE p.average_rating IS NOT NULL GROUP BY b.brand_id, b.brand_name HAVING COUNT(p.product_id) >= 5 ORDER BY avg_rating DESC LIMIT 15;"
         headers = ["Nama Brand", "Total Produk", "Rata-rata Rating", "Rata-rata Ulasan", "Total Wishlist"]
