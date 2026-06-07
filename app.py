@@ -363,20 +363,27 @@ def add_product():
 
     return redirect("/input")
 
-@app.route("/delete_product/<int:product_id>", methods=["POST"])
+# PASTIKAN ada 'GET' di dalam list methods-nya, atau hapus saja parameter methods-nya!
+@app.route('/delete_product/<int:product_id>', methods=['GET', 'POST'])
 def delete_product(product_id):
     conn = get_db_connection()
     try:
+        # Hapus dulu di tabel relasi anak (Rating & Engagement) agar tidak melanggar Foreign Key Constraint
         conn.execute("DELETE FROM Rating WHERE product_id = ?;", (product_id,))
         conn.execute("DELETE FROM Engagement WHERE product_id = ?;", (product_id,))
+        
+        # Baru hapus di tabel utama (Product)
         conn.execute("DELETE FROM Product WHERE product_id = ?;", (product_id,))
+        
         conn.commit()
-        flash(f"Sukses! Produk ID {product_id} berhasil dihapus dari database.", "success")
+        flash(f"Sukses! Data produk ID #{product_id} berhasil dihapus dari database.", "success")
     except Exception as e:
-        flash(f"Gagal menghapus: {e}", "danger")
+        conn.rollback()
+        flash(f"Gagal menghapus data! Eror: {str(e)}", "danger")
     finally:
         conn.close()
-    return redirect(url_for("input_management"))
+        
+    return redirect('/input')
 
 # --- PROSES PERBARUI DATA (FITUR UPDATE RECORD) ---
 # --- PROSES PERBARUI DATA (ANTI-OVERWRITE JIKA INPUT DIKOSONGKAN) ---
