@@ -5,7 +5,6 @@ import os
 app = Flask(__name__)
 app.secret_key = "sociolla_secret_key"
 
-# Trick untuk menghilangkan halaman warning bawaan Ngrok jika diakses lewat jalur tunnel
 @app.after_request
 def add_header(response):
     response.headers["ngrok-skip-browser-warning"] = "true"
@@ -19,9 +18,9 @@ def get_db_connection():
     return conn
 
 # ==========================================
-# PAGE 1: HOME (FULL COLUMNS & ANTI-LAG)
+# PAGE 1: HOME (SINKRON 9 ASPEK & FULL LIVE STATS)
 # ==========================================
-@app.route("/")
+@app.route('/')
 def home():
     conn = get_db_connection()
     
@@ -32,7 +31,7 @@ def home():
     count_rating = conn.execute("SELECT COUNT(*) FROM Rating;").fetchone()[0]
     count_engagement = conn.execute("SELECT COUNT(*) FROM Engagement;").fetchone()[0]
 
-    # 🔍 2. Fitur Ambil ID dari Kolom Search
+    # 🔍 2. Fitur Ambil ID dari Kolom Search ID
     search_id = request.args.get('search_id', '').strip()
     search_result = None
     
@@ -48,10 +47,16 @@ def home():
         """
         search_result = conn.execute(query_search, (int(search_id),)).fetchone()
 
-    # 3. Tabel Data Lengkap 
+    # 3. Tabel Data Lengkap (Gunakan filter keyword pencarian nama produk jika ada)
+    keyword = request.args.get('search', '').strip()
+    if keyword:
+        query_prod = "SELECT * FROM Product WHERE product_name LIKE ? ORDER BY product_id DESC LIMIT 100;"
+        products = conn.execute(query_prod, (f"%{keyword}%",)).fetchall()
+    else:
+        products = conn.execute("SELECT * FROM Product ORDER BY product_id ASC LIMIT 100;").fetchall()
+
     brands = conn.execute("SELECT * FROM Brand ORDER BY brand_id ASC;").fetchall()
     categories = conn.execute("SELECT * FROM Category ORDER BY category_id ASC;").fetchall()
-    products = conn.execute("SELECT * FROM Product ORDER BY product_id ASC LIMIT 100;").fetchall()
     ratings = conn.execute("SELECT * FROM Rating ORDER BY product_id ASC LIMIT 100;").fetchall()
     engagements = conn.execute("SELECT * FROM Engagement ORDER BY product_id ASC LIMIT 100;").fetchall()
     
@@ -90,7 +95,6 @@ def analysis():
     title = ""
     description = ""
 
-    # --- 1. LOGIKA 13 QUERY RELASIONAL ---
     if selected_query == "join1_detail":
         title = "JOIN-1: Detail Ringkasan Produk & Pasar"
         description = "Menggabungkan tabel Product, Brand, Category, dan Engagement untuk melihat gambaran umum ulasan produk."
@@ -167,7 +171,6 @@ def analysis():
         raw_rows = []
         data = []
 
-# --- 2. LOGIKA GRAFIK DINAMIS: SESUAIKAN GRAFIK BERDASARKAN QUERY AKTIF ---
     chart_labels = []
     chart_values1 = []
     chart_values2 = []
@@ -185,7 +188,6 @@ def analysis():
         for row in sample_data:
             chart_labels.append(row[3][:15] + "..." if len(row[3]) > 15 else row[3])
             chart_values1.append(float(row[6]) if row[6] else 0.0)
-
     elif selected_query == "agg1_brand":
         chart_title = "Top 5 Brand: Perbandingan Rata-rata Rating (AGG-1)"
         chart_type = "line"
@@ -193,7 +195,6 @@ def analysis():
         for row in sample_data:
             chart_labels.append(row[0])
             chart_values1.append(float(row[2]) if row[2] else 0.0)
-
     elif selected_query == "agg2_kategori":
         chart_title = "Top 5 Kategori: Akumulasi Jumlah Wishlist Pasar (AGG-2)"
         chart_type = "bar"
@@ -201,7 +202,6 @@ def analysis():
         for row in sample_data:
             chart_labels.append(row[0])
             chart_values1.append(int(row[2]) if row[2] else 0)
-
     elif selected_query == "agg3_aspek":
         chart_title = "Top Kategori: Komparasi Kepuasan Kemasan vs Efektivitas (AGG-3)"
         chart_type = "bar"
@@ -211,24 +211,20 @@ def analysis():
             chart_labels.append(row[0])
             chart_values1.append(float(row[2]) if row[2] else 0.0)
             chart_values2.append(float(row[4]) if row[4] else 0.0)
-
     elif selected_query == "agg4_repurchase":
         chart_title = "Top Kategori: Tingkat Loyalitas Repurchase Konsumen (%) (AGG-4)"
-        chart_type = "bar"  # Diubah dari 'pie' menjadi 'bar'
+        chart_type = "bar"
         label_dataset1 = "Persentase Beli Kembali (Yes %)"
         for row in sample_data:
-            chart_labels.append(row[0])  # Kolom 0 = Category Default
-            chart_values1.append(float(row[4]) if row[4] else 0.0)  # Kolom 4 = pct_repurchase_yes (Sudah terurut DESC dari SQL)
-
-    # 💰 GRAFIK HARGA 1: Membandingkan Harga Termahal antar Brand (AGG-5)
+            chart_labels.append(row[0])
+            chart_values1.append(float(row[4]) if row[4] else 0.0)
     elif selected_query == "agg5_rentang":
         chart_title = "Top Brand: Analisis Batas Harga Maksimal Produk (Rp) (AGG-5)"
         chart_type = "bar"
         label_dataset1 = "Harga Termahal"
         for row in sample_data:
             chart_labels.append(row[0])
-            chart_values1.append(int(row[5]) if row[5] else 0) # Menarik kolom harga_tertinggi
-
+            chart_values1.append(int(row[5]) if row[5] else 0)
     elif selected_query == "rank1_ulasan":
         chart_title = "Top 5 Produk: Kuantitas Ulasan Terbanyak (RANK-1)"
         chart_type = "bar"
@@ -236,7 +232,6 @@ def analysis():
         for row in sample_data:
             chart_labels.append(row[0][:15] + "..." if len(row[0]) > 15 else row[0])
             chart_values1.append(int(row[4]) if row[4] else 0)
-
     elif selected_query == "rank2_rating":
         chart_title = "Top 5 Produk: Urutan Rating Tertinggi (RANK-2)"
         chart_type = "bar"
@@ -244,16 +239,13 @@ def analysis():
         for row in sample_data:
             chart_labels.append(row[0][:15] + "..." if len(row[0]) > 15 else row[0])
             chart_values1.append(float(row[3]) if row[3] else 0.0)
-
-    # 💰 GRAFIK HARGA 2: Membandingkan Harga Terendah Produk Populer (RANK-3)
     elif selected_query == "rank3_wishlist":
         chart_title = "Top 5 Wishlist: Perbandingan Harga Minimum Produk Terpopuler (Rp) (RANK-3)"
         chart_type = "bar"
         label_dataset1 = "Harga Minimum (Rp)"
         for row in sample_data:
             chart_labels.append(row[0][:15] + "..." if len(row[0]) > 15 else row[0])
-            chart_values1.append(int(row[3]) if row[3] else 0) # Menarik kolom min_price
-
+            chart_values1.append(int(row[3]) if row[3] else 0)
     elif selected_query == "rank4_rekomendasi":
         chart_title = "Top 5 Produk: Rasio Rekomendasi Tertinggi (%) (RANK-4)"
         chart_type = "bar"
@@ -261,15 +253,13 @@ def analysis():
         for row in sample_data:
             chart_labels.append(row[0][:15] + "..." if len(row[0]) > 15 else row[0])
             chart_values1.append(float(row[6]) if row[6] else 0.0)
-
-    # 💰 GRAFIK HARGA 3: Mengurutkan Jajaran Produk Kelas Sultan Premium (RANK-5)
     elif selected_query == "rank5_termahal":
         chart_title = "Top Sultan Premium: Urutan Produk Kosmetik Termahal (Rp) (RANK-5)"
         chart_type = "bar"
         label_dataset1 = "Harga Maksimal (Rp)"
         for row in sample_data:
             chart_labels.append(row[0][:15] + "..." if len(row[0]) > 15 else row[0])
-            chart_values1.append(int(row[3]) if row[3] else 0) # Menarik kolom max_price
+            chart_values1.append(int(row[3]) if row[3] else 0)
 
     conn.close()
     return render_template(
@@ -288,15 +278,11 @@ def input_page():
     brands = conn.execute("SELECT * FROM Brand ORDER BY brand_name ASC;").fetchall()
     categories = conn.execute("SELECT * FROM Category ORDER BY category_default ASC;").fetchall()
     
-    # Tangkap kata kunci pencarian jika ada
     keyword = request.args.get('search_keyword', '').strip()
-    
     if keyword:
-        # Jika user mencari sesuatu (bisa berupa potongan nama produk atau angka ID langsung)
         query = "SELECT * FROM Product WHERE product_name LIKE ? OR product_id = ? ORDER BY product_id DESC;"
         products = conn.execute(query, (f"%{keyword}%", keyword if keyword.isdigit() else -1)).fetchall()
     else:
-        # Jika normal, tampilkan 100 baris terbaru
         products = conn.execute("SELECT * FROM Product ORDER BY product_id DESC LIMIT 100;").fetchall()
         
     conn.close()
@@ -304,7 +290,6 @@ def input_page():
 
 @app.route("/add_product", methods=["POST"])
 def add_product():
-    # 1. Informasi Utama (Wajib diisi)
     product_name = request.form.get("product_name")
     brand_id = request.form.get("brand_id")
     category_id = request.form.get("category_id")
@@ -312,16 +297,22 @@ def add_product():
     max_price = request.form.get("max_price")
     beauty_point = request.form.get("beauty_point")
     average_rating = request.form.get("average_rating")
+    
+    # ➕ AMBIL DATA STRING BARU: SINKRONISASI SKEMA DATABASE TABEL PRODUCT
+    url = request.form.get("url") or ""
+    active_date = request.form.get("active_date") or ""
 
-    # 2. Skor Kualitas Aspek (Boleh Kosong - Diberi proteksi default 0.0 jika kosong)
+    # ➕ AMBIL GENAP 9 ASPEK RATING REAL (TERMASUK DURABILITTY TYPO & EFFICIENCY)
     rating_packaging = request.form.get("rating_packaging") or 0.0
     rating_texture = request.form.get("rating_texture") or 0.0
     rating_effectiveness = request.form.get("rating_effectiveness") or 0.0
     rating_value_for_money = request.form.get("rating_value_for_money") or 0.0
     rating_long_wear = request.form.get("rating_long_wear") or 0.0
     rating_scent = request.form.get("rating_scent") or 0.0
+    rating_pigmentation = request.form.get("rating_pigmentation") or 0.0
+    rating_durabilitty = request.form.get("rating_durability") or 0.0
+    rating_efficiency = request.form.get("rating_efficiency") or 0.0
 
-    # 3. Statistik Engagement Pasar (Boleh Kosong - Diberi proteksi default 0 jika kosong)
     total_reviews = request.form.get("total_reviews") or 0
     total_recommend_count = request.form.get("total_recommend_count") or 0
     total_in_wishlist = request.form.get("total_in_wishlist") or 0
@@ -331,30 +322,27 @@ def add_product():
 
     conn = get_db_connection()
     try:
-        # --- EKSEKUSI INSERT KE TABEL PRODUCT ---
-        # (Sesuaikan susunan kolom SQL Insert kelompokmu di bawah ini)
+        # SINKRON QUERY: Memasukkan kolom url dan active_date
         conn.execute("""
-            INSERT INTO Product (product_name, brand_id, category_id, min_price, max_price, beauty_point_earned, average_rating)
-            VALUES (?, ?, ?, ?, ?, ?, ?);
-        """, (product_name, brand_id, category_id, min_price, max_price, beauty_point, average_rating))
+            INSERT INTO Product (product_name, brand_id, category_id, min_price, max_price, beauty_point_earned, url, active_date, average_rating)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);
+        """, (product_name, brand_id, category_id, min_price, max_price, beauty_point, url, active_date, average_rating))
         
-        # Ambil ID produk yang barusan otomatis terbit dari database autoincrement
         new_product_id = conn.execute("SELECT last_insert_rowid();").fetchone()[0]
 
-        # --- EKSEKUSI INSERT KE TABEL RATING ASPEK ---
+        # SINKRON QUERY: Memasukkan 9 kolom lengkap ke tabel Rating aspek
         conn.execute("""
-            INSERT INTO Rating (product_id, rating_packaging, rating_texture, rating_effectiveness, rating_value_for_money, rating_long_wear, rating_scent)
-            VALUES (?, ?, ?, ?, ?, ?, ?);
-        """, (new_product_id, rating_packaging, rating_texture, rating_effectiveness, rating_value_for_money, rating_long_wear, rating_scent))
+            INSERT INTO Rating (product_id, rating_packaging, rating_texture, rating_effectiveness, rating_value_for_money, rating_long_wear, rating_scent, rating_pigmentation, rating_durabilitty, rating_efficiency)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+        """, (new_product_id, rating_packaging, rating_texture, rating_effectiveness, rating_value_for_money, rating_long_wear, rating_scent, rating_pigmentation, rating_durabilitty, rating_efficiency))
 
-        # --- EKSEKUSI INSERT KE TABEL ENGAGEMENT ---
         conn.execute("""
             INSERT INTO Engagement (product_id, total_reviews, total_recommend_count, total_in_wishlist, total_repurchase_yes, total_repurchase_no, total_repurchase_maybe)
             VALUES (?, ?, ?, ?, ?, ?, ?);
         """, (new_product_id, total_reviews, total_recommend_count, total_in_wishlist, total_repurchase_yes, total_repurchase_no, total_repurchase_maybe))
 
         conn.commit()
-        flash("Sukses! Produk baru beserta seluruh aspek relasionalnya berhasil disimpan.", "success")
+        flash(f"Sukses! Produk baru ID #{new_product_id} berhasil disimpan.", "success")
     except Exception as e:
         conn.rollback()
         flash(f"Gagal menyimpan ke database! Eror: {str(e)}", "danger")
@@ -363,18 +351,13 @@ def add_product():
 
     return redirect("/input")
 
-# PASTIKAN ada 'GET' di dalam list methods-nya, atau hapus saja parameter methods-nya!
 @app.route('/delete_product/<int:product_id>', methods=['GET', 'POST'])
 def delete_product(product_id):
     conn = get_db_connection()
     try:
-        # Hapus dulu di tabel relasi anak (Rating & Engagement) agar tidak melanggar Foreign Key Constraint
         conn.execute("DELETE FROM Rating WHERE product_id = ?;", (product_id,))
         conn.execute("DELETE FROM Engagement WHERE product_id = ?;", (product_id,))
-        
-        # Baru hapus di tabel utama (Product)
         conn.execute("DELETE FROM Product WHERE product_id = ?;", (product_id,))
-        
         conn.commit()
         flash(f"Sukses! Data produk ID #{product_id} berhasil dihapus dari database.", "success")
     except Exception as e:
@@ -385,23 +368,19 @@ def delete_product(product_id):
         
     return redirect('/input')
 
-# --- PROSES PERBARUI DATA (FITUR UPDATE RECORD) ---
-# --- PROSES PERBARUI DATA (ANTI-OVERWRITE JIKA INPUT DIKOSONGKAN) ---
+# --- PROSES PERBARUI DATA (ANTI-OVERWRITE & SINKRON 9 ASPEK + URL) ---
 @app.route("/update_product/<int:product_id>", methods=["POST"])
 def update_product(product_id):
     conn = get_db_connection()
     
-    # 🔍 LANGKAH 1: Ambil data lama yang saat ini ada di database sebagai cadangan
     old_p = conn.execute("SELECT * FROM Product WHERE product_id = ?;", (product_id,)).fetchone()
     old_r = conn.execute("SELECT * FROM Rating WHERE product_id = ?;", (product_id,)).fetchone()
     old_e = conn.execute("SELECT * FROM Engagement WHERE product_id = ?;", (product_id,)).fetchone()
 
-    # 🔍 LANGKAH 2: Tangkap data dari form. Jika kosong/"" atau tidak diisi, gunakan data lama!
     product_name = request.form.get("product_name") or old_p["product_name"]
     brand_id = request.form.get("brand_id") or old_p["brand_id"]
     category_id = request.form.get("category_id") or old_p["category_id"]
     
-    # Untuk angka, kita pastikan jika formnya kosong, pakai nilai lama
     min_price = request.form.get("min_price")
     min_price = int(min_price) if min_price else old_p["min_price"]
     
@@ -414,7 +393,10 @@ def update_product(product_id):
     beauty_point = request.form.get("beauty_point")
     beauty_point = int(beauty_point) if beauty_point else old_p["beauty_point_earned"]
 
-    # --- Bagian Tabel Rating (Aspek Fisik) ---
+    # ➕ UPDATE INPUT BARU: SINKRONISASI URL & ACTIVE DATE
+    url = request.form.get("url") or old_p["url"]
+    active_date = request.form.get("active_date") or old_p["active_date"]
+
     r_pkg = request.form.get("rating_packaging")
     r_pkg = float(r_pkg) if r_pkg else old_r["rating_packaging"]
     
@@ -433,7 +415,16 @@ def update_product(product_id):
     r_snt = request.form.get("rating_scent")
     r_snt = float(r_snt) if r_snt else old_r["rating_scent"]
 
-    # --- Bagian Tabel Engagement (Aktivitas Pasar) ---
+    # ➕ UPDATE INPUT BARU: TAMBAHAN 3 ASPEK SKELETON RATING LENGKAP
+    r_pig = request.form.get("rating_pigmentation")
+    r_pig = float(r_pig) if r_pig else old_r["rating_pigmentation"]
+
+    r_dur = request.form.get("rating_durability")
+    r_dur = float(r_dur) if r_dur else old_r["rating_durabilitty"]
+
+    r_effi = request.form.get("rating_efficiency")
+    r_effi = float(r_effi) if r_effi else old_r["rating_efficiency"]
+
     t_rev = request.form.get("total_reviews")
     t_rev = int(t_rev) if t_rev else old_e["total_reviews"]
     
@@ -453,18 +444,19 @@ def update_product(product_id):
     r_may = int(r_may) if r_may else old_e["total_repurchase_maybe"]
 
     try:
-        # Eksekusi SQL UPDATE dengan nilai yang sudah divalidasi aman
+        # QUERY UPDATE PRODUCT (Termasuk url & active_date)
         conn.execute("""
             UPDATE Product 
-            SET brand_id = ?, category_id = ?, product_name = ?, min_price = ?, max_price = ?, beauty_point_earned = ?, average_rating = ?
+            SET brand_id = ?, category_id = ?, product_name = ?, min_price = ?, max_price = ?, beauty_point_earned = ?, url = ?, active_date = ?, average_rating = ?
             WHERE product_id = ?;
-        """, (brand_id, category_id, product_name, min_price, max_price, beauty_point, average_rating, product_id))
+        """, (brand_id, category_id, product_name, min_price, max_price, beauty_point, url, active_date, average_rating, product_id))
 
+        # QUERY UPDATE RATING LENGKAP (9 ASPEK SEKALIGUS)
         conn.execute("""
             UPDATE Rating 
-            SET rating_packaging = ?, rating_texture = ?, rating_effectiveness = ?, rating_value_for_money = ?, rating_long_wear = ?, rating_scent = ?
+            SET rating_packaging = ?, rating_texture = ?, rating_effectiveness = ?, rating_value_for_money = ?, rating_long_wear = ?, rating_scent = ?, rating_pigmentation = ?, rating_durabilitty = ?, rating_efficiency = ?
             WHERE product_id = ?;
-        """, (r_pkg, r_txt, r_eff, r_val, r_lng, r_snt, product_id))
+        """, (r_pkg, r_txt, r_eff, r_val, r_lng, r_snt, r_pig, r_dur, r_effi, product_id))
 
         conn.execute("""
             UPDATE Engagement 
@@ -479,7 +471,8 @@ def update_product(product_id):
     finally:
         conn.close()
 
-    return redirect(url_for("input_management"))
+    # KUNCI PERBAIKAN: Melempar redirect ke nama fungsi route halaman input yang benar ('input_page')
+    return redirect(url_for("input_page"))
 
 if __name__ == "__main__":
     app.run(debug=True)
