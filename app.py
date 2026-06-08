@@ -175,6 +175,7 @@ def analysis():
     chart_values1 = []
     chart_values2 = []
     chart_title = "Visualisasi Distribusi Data"
+    chart_title = "Visualisasi Distribusi Data"
     chart_type = "bar" 
     label_dataset1 = "Nilai"
     label_dataset2 = ""
@@ -284,22 +285,26 @@ def input_page():
     search_keyword = request.args.get('search_keyword', '').strip()
     
     if search_keyword:
-        # 🛠️ SINKRON QUERY: Tambahkan LEFT JOIN Brand agar nama brand bisa dibaca saat dicari
         term = f"%{search_keyword}%"
+        # 🛠️ PERBAIKAN: Ditambahkan LEFT JOIN r.* (Rating) dan e.* (Engagement)
         query = """
-            SELECT p.*, b.brand_name 
+            SELECT p.*, b.brand_name, r.*, e.*
             FROM Product p
             LEFT JOIN Brand b ON p.brand_id = b.brand_id
+            LEFT JOIN Rating r ON p.product_id = r.product_id
+            LEFT JOIN Engagement e ON p.product_id = e.product_id
             WHERE p.product_name LIKE ? OR b.brand_name LIKE ? OR p.product_id LIKE ?
             ORDER BY p.product_id DESC LIMIT 30;
         """
         products = conn.execute(query, (term, term, term)).fetchall()
     else:
-        # 🛠️ SINKRON QUERY: Tambahkan LEFT JOIN Brand untuk tampilan default data awal (100 baris)
+        # 🛠️ PERBAIKAN: Tampilan awal default juga harus di-LEFT JOIN ke semua tabel biar datanya ditarik lengkap
         query = """
-            SELECT p.*, b.brand_name 
+            SELECT p.*, b.brand_name, r.*, e.*
             FROM Product p
             LEFT JOIN Brand b ON p.brand_id = b.brand_id
+            LEFT JOIN Rating r ON p.product_id = r.product_id
+            LEFT JOIN Engagement e ON p.product_id = e.product_id
             ORDER BY p.product_id ASC LIMIT 100;
         """
         products = conn.execute(query).fetchall()
@@ -309,22 +314,17 @@ def input_page():
 
 @app.route("/add_product", methods=["POST"])
 def add_product():
-    # ➕ 1. Tangkap ID Produk hasil input manual
     product_id = request.form.get("product_id")
-    
-    # 2. Informasi Utama
     product_name = request.form.get("product_name")
     brand_id = request.form.get("brand_id")
     category_id = request.form.get("category_id")
     min_price = request.form.get("min_price")
     max_price = request.form.get("max_price")
     beauty_point = request.form.get("beauty_point")
-    average_rating = request.form.get("average_rating")
-    
+    average_rating = request.form.get("average_rating") or 0.0
     url = request.form.get("url") or ""
     active_date = request.form.get("active_date") or ""
 
-    # 3. Skor Kualitas Aspek (9 Aspek)
     rating_packaging = request.form.get("rating_packaging") or 0.0
     rating_texture = request.form.get("rating_texture") or 0.0
     rating_effectiveness = request.form.get("rating_effectiveness") or 0.0
@@ -335,7 +335,6 @@ def add_product():
     rating_durability = request.form.get("rating_durability") or 0.0
     rating_efficiency = request.form.get("rating_efficiency") or 0.0
 
-    # 4. Statistik Engagement
     total_reviews = request.form.get("total_reviews") or 0
     total_recommend_count = request.form.get("total_recommend_count") or 0
     total_in_wishlist = request.form.get("total_in_wishlist") or 0
@@ -345,13 +344,11 @@ def add_product():
 
     conn = get_db_connection()
     try:
-        # 🛠️ SINKRON QUERY: Masukkan product_id secara manual ke tabel Product
         conn.execute("""
             INSERT INTO Product (product_id, product_name, brand_id, category_id, min_price, max_price, beauty_point_earned, url, active_date, average_rating)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
         """, (product_id, product_name, brand_id, category_id, min_price, max_price, beauty_point, url, active_date, average_rating))
 
-        # 🛠️ SINKRON QUERY: Gunakan product_id manual tadi untuk mengunci tabel Rating dan Engagement
         conn.execute("""
             INSERT INTO Rating (product_id, rating_packaging, rating_texture, rating_effectiveness, rating_value_for_money, rating_long_wear, rating_scent, rating_pigmentation, rating_durability, rating_efficiency)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
@@ -363,10 +360,10 @@ def add_product():
         """, (product_id, total_reviews, total_recommend_count, total_in_wishlist, total_repurchase_yes, total_repurchase_no, total_repurchase_maybe))
 
         conn.commit()
-        flash(f"Sukses! Produk baru dengan ID #{product_id} berhasil disimpan.", "success")
+        flash(f"Sukses! Produk dengan ID #{product_id} berhasil disimpan dengan 9 aspek rating.", "success")
     except Exception as e:
         conn.rollback()
-        flash(f"Gagal menyimpan! (Tips: Pastikan ID #{product_id} belum pernah dipakai). Eror: {str(e)}", "danger")
+        flash(f"Gagal menyimpan! Periksa apakah ID #{product_id} sudah terpakai. Error: {str(e)}", "danger")
     finally:
         conn.close()
 
@@ -389,7 +386,9 @@ def delete_product(product_id):
         
     return redirect('/input')
 
-# --- PROSES PERBARUI DATA (ANTI-OVERWRITE & SINKRON 9 ASPEK + URL) ---
+# =========================================================================
+# 🛠️ SOLUSI AMAN: LOGIKA PEMBARUAN DATA (EXPLISIT VALIDATION FOR FLOATS & INTS)
+# =========================================================================
 @app.route("/update_product/<int:product_id>", methods=["POST"])
 def update_product(product_id):
     conn = get_db_connection()
@@ -398,87 +397,89 @@ def update_product(product_id):
     old_r = conn.execute("SELECT * FROM Rating WHERE product_id = ?;", (product_id,)).fetchone()
     old_e = conn.execute("SELECT * FROM Engagement WHERE product_id = ?;", (product_id,)).fetchone()
 
+    # Data teks/string (Tetap aman menggunakan 'or')
     product_name = request.form.get("product_name") or old_p["product_name"]
     brand_id = request.form.get("brand_id") or old_p["brand_id"]
     category_id = request.form.get("category_id") or old_p["category_id"]
-    
-    min_price = request.form.get("min_price")
-    min_price = int(min_price) if min_price else old_p["min_price"]
-    
-    max_price = request.form.get("max_price")
-    max_price = int(max_price) if max_price else old_p["max_price"]
-    
-    average_rating = request.form.get("average_rating")
-    average_rating = float(average_rating) if average_rating else old_p["average_rating"]
-    
-    beauty_point = request.form.get("beauty_point")
-    beauty_point = int(beauty_point) if beauty_point else old_p["beauty_point_earned"]
-
-    # ➕ UPDATE INPUT BARU: SINKRONISASI URL & ACTIVE DATE
     url = request.form.get("url") or old_p["url"]
     active_date = request.form.get("active_date") or old_p["active_date"]
 
+    # 🛠️ VALIDASI EKSPLISIT VARIABEL NUMERIK UTAMA PRODUCT
+    min_price = request.form.get("min_price")
+    min_price = int(min_price) if min_price and min_price.strip() != "" else old_p["min_price"]
+    
+    max_price = request.form.get("max_price")
+    max_price = int(max_price) if max_price and max_price.strip() != "" else old_p["max_price"]
+    
+    average_rating = request.form.get("average_rating")
+    average_rating = float(average_rating) if average_rating and average_rating.strip() != "" else old_p["average_rating"]
+    
+    beauty_point = request.form.get("beauty_point")
+    beauty_point = int(beauty_point) if beauty_point and beauty_point.strip() != "" else old_p["beauty_point_earned"]
+
+    # 🛠️ VALIDASI EKSPLISIT VARIABEL NUMERIK ASPEK RATING (Suku kata t satu: rating_durability)
     r_pkg = request.form.get("rating_packaging")
-    r_pkg = float(r_pkg) if r_pkg else old_r["rating_packaging"]
+    r_pkg = float(r_pkg) if r_pkg and r_pkg.strip() != "" else old_r["rating_packaging"]
     
     r_txt = request.form.get("rating_texture")
-    r_txt = float(r_txt) if r_txt else old_r["rating_texture"]
+    r_txt = float(r_txt) if r_txt and r_txt.strip() != "" else old_r["rating_texture"]
     
     r_eff = request.form.get("rating_effectiveness")
-    r_eff = float(r_eff) if r_eff else old_r["rating_effectiveness"]
+    r_eff = float(r_eff) if r_eff and r_eff.strip() != "" else old_r["rating_effectiveness"]
     
     r_val = request.form.get("rating_value_for_money")
-    r_val = float(r_val) if r_val else old_r["rating_value_for_money"]
+    r_val = float(r_val) if r_val and r_val.strip() != "" else old_r["rating_value_for_money"]
     
     r_lng = request.form.get("rating_long_wear")
-    r_lng = float(r_lng) if r_lng else old_r["rating_long_wear"]
+    r_lng = float(r_lng) if r_lng and r_lng.strip() != "" else old_r["rating_long_wear"]
     
     r_snt = request.form.get("rating_scent")
-    r_snt = float(r_snt) if r_snt else old_r["rating_scent"]
+    r_snt = float(r_snt) if r_snt and r_snt.strip() != "" else old_r["rating_scent"]
 
-    # ➕ UPDATE INPUT BARU: TAMBAHAN 3 ASPEK SKELETON RATING LENGKAP
     r_pig = request.form.get("rating_pigmentation")
-    r_pig = float(r_pig) if r_pig else old_r["rating_pigmentation"]
+    r_pig = float(r_pig) if r_pig and r_pig.strip() != "" else old_r["rating_pigmentation"]
 
     r_dur = request.form.get("rating_durability")
-    r_dur = float(r_dur) if r_dur else old_r["rating_durability"]
+    r_dur = float(r_dur) if r_dur and r_dur.strip() != "" else old_r["rating_durability"]
 
     r_effi = request.form.get("rating_efficiency")
-    r_effi = float(r_effi) if r_effi else old_r["rating_efficiency"]
+    r_effi = float(r_effi) if r_effi and r_effi.strip() != "" else old_r["rating_efficiency"]
 
+    # 🛠️ VALIDASI EKSPLISIT VARIABEL NUMERIK METRIK ENGAGEMENT
     t_rev = request.form.get("total_reviews")
-    t_rev = int(t_rev) if t_rev else old_e["total_reviews"]
+    t_rev = int(t_rev) if t_rev and t_rev.strip() != "" else old_e["total_reviews"]
     
     t_rec = request.form.get("total_recommend_count")
-    t_rec = int(t_rec) if t_rec else old_e["total_recommend_count"]
+    t_rec = int(t_rec) if t_rec and t_rec.strip() != "" else old_e["total_recommend_count"]
     
     t_wsh = request.form.get("total_in_wishlist")
-    t_wsh = int(t_wsh) if t_wsh else old_e["total_in_wishlist"]
+    t_wsh = int(t_wsh) if t_wsh and t_wsh.strip() != "" else old_e["total_in_wishlist"]
     
     r_yes = request.form.get("total_repurchase_yes")
-    r_yes = int(r_yes) if r_yes else old_e["total_repurchase_yes"]
+    r_yes = int(r_yes) if r_yes and r_yes.strip() != "" else old_e["total_repurchase_yes"]
     
     r_no = request.form.get("total_repurchase_no")
     r_no = int(r_no) if r_no else old_e["total_repurchase_no"]
     
     r_may = request.form.get("total_repurchase_maybe")
-    r_may = int(r_may) if r_may else old_e["total_repurchase_maybe"]
+    r_may = int(r_may) if r_may and r_may.strip() != "" else old_e["total_repurchase_maybe"]
 
     try:
-        # QUERY UPDATE PRODUCT (Termasuk url & active_date)
+        # EXECUTE SQL UPDATE PRODUCT
         conn.execute("""
             UPDATE Product 
             SET brand_id = ?, category_id = ?, product_name = ?, min_price = ?, max_price = ?, beauty_point_earned = ?, url = ?, active_date = ?, average_rating = ?
             WHERE product_id = ?;
         """, (brand_id, category_id, product_name, min_price, max_price, beauty_point, url, active_date, average_rating, product_id))
 
-        # QUERY UPDATE RATING LENGKAP (9 ASPEK SEKALIGUS)
+        # EXECUTE SQL UPDATE RATING (9 ASPEK)
         conn.execute("""
             UPDATE Rating 
             SET rating_packaging = ?, rating_texture = ?, rating_effectiveness = ?, rating_value_for_money = ?, rating_long_wear = ?, rating_scent = ?, rating_pigmentation = ?, rating_durability = ?, rating_efficiency = ?
             WHERE product_id = ?;
         """, (r_pkg, r_txt, r_eff, r_val, r_lng, r_snt, r_pig, r_dur, r_effi, product_id))
 
+        # EXECUTE SQL UPDATE ENGAGEMENT
         conn.execute("""
             UPDATE Engagement 
             SET total_reviews = ?, total_recommend_count = ?, total_in_wishlist = ?, total_repurchase_yes = ?, total_repurchase_no = ?, total_repurchase_maybe = ?
@@ -492,7 +493,6 @@ def update_product(product_id):
     finally:
         conn.close()
 
-    # KUNCI PERBAIKAN: Melempar redirect ke nama fungsi route halaman input yang benar ('input_page')
     return redirect(url_for("input_page"))
 
 if __name__ == "__main__":
