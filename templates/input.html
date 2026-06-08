@@ -45,6 +45,7 @@
     </div>
 
     <div class="row">
+        <!-- FORM TAMBAH PRODUK BARU (KIRI) -->
         <div class="col-lg-5 mb-4">
             <div class="card shadow-sm border-0 rounded-3">
                 <div class="card-header bg-sociolla text-white fw-bold">➕ Tambah Produk Kosmetik Baru</div>
@@ -112,7 +113,8 @@
                             </div>
                         </div>
 
-                        <h6 class="fw-bold text-sociolla border-bottom pb-1 mb-3">2. Skor Kualitas Aspek (Opsional)</h6>
+                        <!-- 🛠️ UPDATE FORM KIRI: SEKARANG LENGKAP JADI 9 SEPERTI FORM KANAN -->
+                        <h6 class="fw-bold text-sociolla border-bottom pb-1 mb-3">2. Skor Kualitas Aspek (9 Aspek - Opsional)</h6>
                         <div class="row mb-3">
                             <div class="col-4">
                                 <label class="form-label text-dark small">Packaging</label>
@@ -141,6 +143,7 @@
                                 <input type="number" step="0.1" max="5" name="rating_scent" class="form-control border-sociolla" placeholder="0.0">
                             </div>
                         </div>
+                        <!-- ➕ TIGA INPUT ASPEK TAMBAHAN FORM KIRI AGAR SINKRON: -->
                         <div class="row mb-4">
                             <div class="col-4">
                                 <label class="form-label text-dark small">Pigmentation</label>
@@ -194,6 +197,7 @@
             </div>
         </div>
 
+        <!-- CONTROL PANEL & LIST PRODUK (KANAN) -->
         <div class="col-lg-7 mb-4">
             <div class="card shadow-sm border-0 rounded-3 h-100">
                 <div class="card-header bg-sociolla text-white fw-bold">⚙️ Live Data Control Panel (Product List)</div>
@@ -226,12 +230,7 @@
                                 <td class="align-middle text-sociolla fw-bold font-monospace">#{{ r.product_id }}</td>
                                 <td class="align-middle fw-semibold text-dark">{{ r.product_name }}</td>
                                 <td class="align-middle">
-                                    {% if r.brand_name %}
-                                        <span class="fw-bold text-dark d-block" style="font-size: 0.85rem;">{{ r.brand_name }}</span>
-                                        <small class="text-muted font-monospace" style="font-size: 0.75rem;">ID: {{ r.brand_id }}</small>
-                                    {% else %}
-                                        <span class="badge bg-light text-muted border">ID: {{ r.brand_id }}</span>
-                                    {% endif %}
+                                    <span class="badge bg-light text-dark border">{{ r.brand_name if r.brand_name else r.brand_id }}</span>
                                 </td>
                                 <td class="align-middle text-success fw-bold">Rp {{ "{:,}".format(r.min_price|int) if r.min_price else "-" }}</td>
                                 <td class="align-middle text-warning fw-bold">★ {{ r.average_rating }}</td>
@@ -247,6 +246,7 @@
                                 </td>
                             </tr>
 
+                            <!-- WINDOW MODAL EDIT -->
                             <div class="modal fade" id="editModal{{ r.product_id }}" tabindex="-1" aria-hidden="true">
                                 <div class="modal-dialog modal-dialog-centered modal-md">
                                     <div class="modal-content border-0 shadow">
