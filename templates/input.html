@@ -14,7 +14,6 @@
 </head>
 <body style="background-color: #fff5f7;">
 
-<!-- Navbar -->
 <nav class="navbar navbar-expand-lg navbar-dark bg-sociolla shadow-sm">
     <div class="container">
         <a class="navbar-brand fw-bold text-white" href="/">🌸 Sociolla Dashboard</a>
@@ -27,7 +26,6 @@
 </nav>
 
 <div class="container mt-5 mb-5">
-    <!-- Flash Messages -->
     {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
             {% for category, message in messages %}
@@ -47,7 +45,6 @@
     </div>
 
     <div class="row">
-        <!-- FORM TAMBAH PRODUK BARU (KIRI) -->
         <div class="col-lg-5 mb-4">
             <div class="card shadow-sm border-0 rounded-3">
                 <div class="card-header bg-sociolla text-white fw-bold">➕ Tambah Produk Kosmetik Baru</div>
@@ -104,7 +101,6 @@
                             </div>
                         </div>
                         
-                        <!-- BARIS MASUKKAN URL & ACTIVE DATE PRODUK -->
                         <div class="row mb-4">
                             <div class="col-6">
                                 <label class="form-label text-dark small fw-bold">URL Produk (Opsional)</label>
@@ -116,7 +112,6 @@
                             </div>
                         </div>
 
-                        <!-- 9 ASPEK LENGKAP NYATA -->
                         <h6 class="fw-bold text-sociolla border-bottom pb-1 mb-3">2. Skor Kualitas Aspek (Opsional)</h6>
                         <div class="row mb-3">
                             <div class="col-4">
@@ -199,7 +194,6 @@
             </div>
         </div>
 
-        <!-- CONTROL PANEL & LIST PRODUK (KANAN) -->
         <div class="col-lg-7 mb-4">
             <div class="card shadow-sm border-0 rounded-3 h-100">
                 <div class="card-header bg-sociolla text-white fw-bold">⚙️ Live Data Control Panel (Product List)</div>
@@ -220,8 +214,8 @@
                             <tr>
                                 <th>ID Produk</th>
                                 <th>Nama Produk</th>
+                                <th>Brand</th>
                                 <th>Harga Min</th>
-                                <th>Harga Max</th>
                                 <th>Rating</th>
                                 <th class="text-center">Aksi</th>
                             </tr>
@@ -231,8 +225,15 @@
                             <tr>
                                 <td class="align-middle text-sociolla fw-bold font-monospace">#{{ r.product_id }}</td>
                                 <td class="align-middle fw-semibold text-dark">{{ r.product_name }}</td>
-                                <td class="align-middle text-success">Rp {{ "{:,}".format(r.min_price|int) if r.min_price else "-" }}</td>
-                                <td class="align-middle text-danger">Rp {{ "{:,}".format(r.max_price|int) if r.max_price else "-" }}</td>
+                                <td class="align-middle">
+                                    {% if r.brand_name %}
+                                        <span class="fw-bold text-dark d-block" style="font-size: 0.85rem;">{{ r.brand_name }}</span>
+                                        <small class="text-muted font-monospace" style="font-size: 0.75rem;">ID: {{ r.brand_id }}</small>
+                                    {% else %}
+                                        <span class="badge bg-light text-muted border">ID: {{ r.brand_id }}</span>
+                                    {% endif %}
+                                </td>
+                                <td class="align-middle text-success fw-bold">Rp {{ "{:,}".format(r.min_price|int) if r.min_price else "-" }}</td>
                                 <td class="align-middle text-warning fw-bold">★ {{ r.average_rating }}</td>
                                 <td class="align-middle text-center">
                                     <div class="d-flex gap-1 justify-content-center">
@@ -246,7 +247,6 @@
                                 </td>
                             </tr>
 
-                            <!-- WINDOW MODAL EDIT -->
                             <div class="modal fade" id="editModal{{ r.product_id }}" tabindex="-1" aria-hidden="true">
                                 <div class="modal-dialog modal-dialog-centered modal-md">
                                     <div class="modal-content border-0 shadow">
@@ -293,7 +293,6 @@
                                                     </div>
                                                 </div>
                                                 
-                                                <!-- EDIT MODAL: SINKRONISASI URL & ACTIVE DATE -->
                                                 <div class="row mb-3">
                                                     <div class="col-6">
                                                         <label class="form-label mb-0 fw-bold">URL Produk</label>
