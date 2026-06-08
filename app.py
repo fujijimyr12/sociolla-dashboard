@@ -275,18 +275,37 @@ def analysis():
 @app.route("/input")
 def input_page():
     conn = get_db_connection()
+    
+    # Ambil data untuk dropdown selection di form kiri
     brands = conn.execute("SELECT * FROM Brand ORDER BY brand_name ASC;").fetchall()
     categories = conn.execute("SELECT * FROM Category ORDER BY category_default ASC;").fetchall()
+
+    # Tangkap kata kunci pencarian jika ada
+    search_keyword = request.args.get('search_keyword', '').strip()
     
-    keyword = request.args.get('search_keyword', '').strip()
-    if keyword:
-        query = "SELECT * FROM Product WHERE product_name LIKE ? OR product_id = ? ORDER BY product_id DESC;"
-        products = conn.execute(query, (f"%{keyword}%", keyword if keyword.isdigit() else -1)).fetchall()
+    if search_keyword:
+        # 🛠️ SINKRON QUERY: Tambahkan LEFT JOIN Brand agar nama brand bisa dibaca saat dicari
+        term = f"%{search_keyword}%"
+        query = """
+            SELECT p.*, b.brand_name 
+            FROM Product p
+            LEFT JOIN Brand b ON p.brand_id = b.brand_id
+            WHERE p.product_name LIKE ? OR b.brand_name LIKE ? OR p.product_id LIKE ?
+            ORDER BY p.product_id DESC LIMIT 30;
+        """
+        products = conn.execute(query, (term, term, term)).fetchall()
     else:
-        products = conn.execute("SELECT * FROM Product ORDER BY product_id DESC LIMIT 100;").fetchall()
-        
+        # 🛠️ SINKRON QUERY: Tambahkan LEFT JOIN Brand untuk tampilan default data awal (100 baris)
+        query = """
+            SELECT p.*, b.brand_name 
+            FROM Product p
+            LEFT JOIN Brand b ON p.brand_id = b.brand_id
+            ORDER BY p.product_id ASC LIMIT 100;
+        """
+        products = conn.execute(query).fetchall()
+
     conn.close()
-    return render_template("input.html", brands=brands, categories=categories, products=products)
+    return render_template('input.html', brands=brands, categories=categories, products=products)
 
 @app.route("/add_product", methods=["POST"])
 def add_product():
@@ -305,7 +324,7 @@ def add_product():
     url = request.form.get("url") or ""
     active_date = request.form.get("active_date") or ""
 
-    # 3. Skor Kualitas Aspek (9 Aspek - Durability t-nya satu ya!)
+    # 3. Skor Kualitas Aspek (9 Aspek)
     rating_packaging = request.form.get("rating_packaging") or 0.0
     rating_texture = request.form.get("rating_texture") or 0.0
     rating_effectiveness = request.form.get("rating_effectiveness") or 0.0
